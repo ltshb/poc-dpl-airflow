@@ -1,0 +1,35 @@
+---
+fullnameOverride: airflow
+# Base on https://airflow.apache.org/docs/helm-chart/stable/index.html#installing-the-helm-chart-with-argo-cd-flux-rancher-or-terraform
+createUserJob:
+  useHelmHooks: false
+  applyCustomEnv: false
+migrateDatabaseJob:
+  useHelmHooks: false
+  applyCustomEnv: false
+  # Automate database migration with Argo CD (optional)
+  jobAnnotations:
+    "argocd.argoproj.io/hook": Sync
+
+# recommendation from the doc
+useStandardNaming: true
+
+executor: KubernetesExecutor
+
+# See https://airflow.apache.org/docs/helm-chart/stable/airflow-configuration.html#configuring-airflow
+config:
+  api:
+    expose_config: 'True'
+    base_url: https://nlb-poc-datapipeline.dev.sgdi.tech/airflow
+
+# do not create persistent volumes for logs
+logs:
+  persistence:
+    enabled: false
+
+# worker configurations
+workers:
+  kubernetes:
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSADagsterDagsterUserDeploymentsSwissgeoPocDatapipeline

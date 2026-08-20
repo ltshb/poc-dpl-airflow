@@ -1,0 +1,26 @@
+# ---
+# apiVersion: traefik.io/v1alpha1
+# kind: Middleware
+# metadata:
+#   name: airflow-strip-prefix
+# spec:
+#   stripPrefix:
+#     prefixes:
+#       - /airflow
+
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: airflow
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`/airflow`)
+      kind: Rule
+      # middlewares:
+      #   - name: airflow-strip-prefix
+      services:
+        - name: airflow-api-server
+          port: 8080
