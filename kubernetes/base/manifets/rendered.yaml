@@ -118,18 +118,23 @@ metadata:
     heritage: Helm
 
 ---
-# Source: airflow/templates/workers/worker-serviceaccount.yaml
+# Source: airflow/templates/workers/worker-kubernetes-serviceaccount.yaml
+###########################################
+## Airflow Worker Kubernetes ServiceAccount
+###########################################
 apiVersion: v1
 kind: ServiceAccount
 automountServiceAccountToken: true
 metadata:
-  name: "airflow-worker"
+  name: "airflow-worker-kubernetes"
   labels:
     tier: airflow
     component: worker
     release: release-name
     chart: "airflow-1.22.0"
     heritage: Helm
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSADagsterDagsterUserDeploymentsSwissgeoPocDatapipeline
 
 ---
 # Source: airflow/charts/postgresql/templates/secrets.yaml
@@ -166,7 +171,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  api-secret-key: "MXJNWEVjNmtUczRuNmFhejc3ZEhGRGNURGJEOVA5cFg="
+  api-secret-key: "YkJzYU1RT0VhaHIxdWExUjFiWTEwcFRLU3FLaFBzWVo="
 
 ---
 # Source: airflow/templates/secrets/jwt-secret.yaml
@@ -185,7 +190,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  jwt-secret: "RmUxN1RuQ1J3d25LbGRBa2xLT0M3YllCd3czUkhJNzhiTENzd1dYb0kyM0dCVmVWRENEQXBDMFMzMXhRZFllT2RJQWt0dzM1aU9qa2U1NzdXMFkxcUxjZmFvdDBrT1c2dVpxYmRlMHZCb3RHSGxYNjRnWHJxdXFVck5udHdKanY="
+  jwt-secret: "WXNZSTBKYVk5U0NzSFkzaHEzTG84RmNSWXB3NU1sTVFIdnpxZkJYeGNpU3hKRnp2QkY3QTNwQzRKV3N2THpENWdKbzN5RHRPakZxOWk2bUdvVDRaQ0lxNml5Rjdwc1dCRGNPRGtWUWx5Qm84MXhma1ZjNU4wemtZWnFIaUx4cHc="
 
 ---
 # Source: airflow/templates/secrets/metadata-connection-secret.yaml
@@ -264,11 +269,13 @@ data:
     reinit_frequency = 3600
     
     [kubernetes_executor]
+    delete_worker_pods = False
+    delete_worker_pods_on_failure = False
     multi_namespace_mode = False
     namespace = airflow
     pod_template_file = /opt/airflow/pod_templates/pod_template_file.yaml
-    worker_container_repository = apache/airflow
-    worker_container_tag = 3.2.2
+    worker_container_repository = 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags
+    worker_container_tag = local-ltshb-55fd6c0
     
     [logging]
     colored_console_log = False
@@ -341,7 +348,7 @@ data:
             # Dynamically created environment variables
             # Dynamically created secret envs
             # Extra env      
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -378,7 +385,7 @@ data:
         []
       topologySpreadConstraints:
         []
-      serviceAccountName: "airflow-worker"
+      serviceAccountName: "airflow-worker-kubernetes"
       
       volumes:
       - emptyDir:
@@ -651,7 +658,7 @@ subjects:
     name: "airflow-scheduler"
     namespace: "airflow"
   - kind: ServiceAccount
-    name: "airflow-worker"
+    name: "airflow-worker-kubernetes"
     namespace: "airflow"
   - kind: ServiceAccount
     name: "airflow-triggerer"
@@ -875,10 +882,10 @@ spec:
       annotations:
         checksum/metadata-secret: c02fd680326c4be7affd827a41b102805b091744e10c007041c7ea6147f70830
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: 09e4ee1688c74636e921315b1c8eb10b3ddb04ce494ac093a4b5dabe2532a5f3
+        checksum/airflow-config: 32a3debafc636489d6b89d14bf390b19fe34b66ff7535480bd6580b1be02cdea
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: d4cc1c460e46b0b0f91d40fca17de96fd883d27f2140ec0854cda0bb808246fa
+        checksum/jwt-secret: 9cac9d9cc6f7db035635fda21f528647424b9cd8d5a94de0bfa3b478d6781c59
     spec:
       serviceAccountName: "airflow-api-server"
       
@@ -908,7 +915,7 @@ spec:
         - name: wait-for-airflow-migrations
           resources:
             {}
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -960,7 +967,7 @@ spec:
                   key: api-secret-key
       containers:
         - name: api-server
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -1087,7 +1094,7 @@ spec:
       annotations:
         checksum/metadata-secret: c02fd680326c4be7affd827a41b102805b091744e10c007041c7ea6147f70830
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: 09e4ee1688c74636e921315b1c8eb10b3ddb04ce494ac093a4b5dabe2532a5f3
+        checksum/airflow-config: 32a3debafc636489d6b89d14bf390b19fe34b66ff7535480bd6580b1be02cdea
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1121,7 +1128,7 @@ spec:
         - name: wait-for-airflow-migrations
           resources:
             {}
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -1173,7 +1180,7 @@ spec:
                   key: api-secret-key
       containers:
         - name: dag-processor
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -1241,7 +1248,7 @@ spec:
         - name: dag-processor-log-groomer
           resources:
             {}
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -1308,10 +1315,10 @@ spec:
         checksum/metadata-secret: c02fd680326c4be7affd827a41b102805b091744e10c007041c7ea6147f70830
         checksum/result-backend-secret: 98a68f230007cfa8f5d3792e1aff843a76b0686409e4a46ab2f092f6865a1b71
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: 09e4ee1688c74636e921315b1c8eb10b3ddb04ce494ac093a4b5dabe2532a5f3
+        checksum/airflow-config: 32a3debafc636489d6b89d14bf390b19fe34b66ff7535480bd6580b1be02cdea
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: ca72570c5c4dedcb5c1d9f6d889ad4ab03715b198de9dc5d23661c6166f3960a
+        checksum/jwt-secret: ec218b991e6882fb3d9774ad681ce30ab44cd3ca7304494ed0ae0176656597bd
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       nodeSelector:
@@ -1343,7 +1350,7 @@ spec:
         - name: wait-for-airflow-migrations
           resources:
             {}
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -1397,7 +1404,7 @@ spec:
                   key: api-secret-key
       containers:
         - name: scheduler
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -1487,7 +1494,7 @@ spec:
         - name: scheduler-log-groomer
           resources:
             {}
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -1803,7 +1810,7 @@ spec:
       annotations:
         checksum/metadata-secret: c02fd680326c4be7affd827a41b102805b091744e10c007041c7ea6147f70830
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: 09e4ee1688c74636e921315b1c8eb10b3ddb04ce494ac093a4b5dabe2532a5f3
+        checksum/airflow-config: 32a3debafc636489d6b89d14bf390b19fe34b66ff7535480bd6580b1be02cdea
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1837,7 +1844,7 @@ spec:
         - name: wait-for-airflow-migrations
           resources:
             {}
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -1891,7 +1898,7 @@ spec:
                   key: api-secret-key
       containers:
         - name: triggerer
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -1963,7 +1970,7 @@ spec:
         - name: triggerer-log-groomer
           resources:
             {}
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -2043,7 +2050,7 @@ spec:
         []
       containers:
         - name: create-user
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -2154,7 +2161,7 @@ spec:
         []
       containers:
         - name: run-airflow-migrations
-          image: apache/airflow:3.2.2
+          image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-55fd6c0
           imagePullPolicy: IfNotPresent
           securityContext: 
             allowPrivilegeEscalation: false
@@ -2649,12 +2656,6 @@ spec:
 #################################
 
 ---
-# Source: airflow/templates/workers/worker-kubernetes-serviceaccount.yaml
-###########################################
-## Airflow Worker Kubernetes ServiceAccount
-###########################################
-
----
 # Source: airflow/templates/workers/worker-networkpolicy.yaml
 ################################
 ## Airflow Worker NetworkPolicy
@@ -2698,7 +2699,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "VDFwNldEUnpTRE54UkdacFVtRnNaalZvYkZneFVWVnRabFZ3VEZNNU5sZz0="
+  fernet-key: "T0hVM1FreDZVR1pLTlZsdGExRXllbFJIUmpaaE9IRkJjMnBJTm13M00wcz0="
 
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
@@ -2729,7 +2730,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  password: "b1Q0S3VqUGNtSA=="
+  password: "dXU1WG5sbWFzQQ=="
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
 ##################################
@@ -2751,5 +2752,5 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  connection: "cmVkaXM6Ly86b1Q0S3VqUGNtSEBhaXJmbG93LXJlZGlzOjYzNzkvMA=="
+  connection: "cmVkaXM6Ly86dXU1WG5sbWFzQUBhaXJmbG93LXJlZGlzOjYzNzkvMA=="
 

@@ -1,5 +1,9 @@
 ---
 fullnameOverride: airflow
+
+defaultAirflowRepository: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags
+defaultAirflowTag: local-ltshb-55fd6c0
+
 # Base on https://airflow.apache.org/docs/helm-chart/stable/index.html#installing-the-helm-chart-with-argo-cd-flux-rancher-or-terraform
 createUserJob:
   useHelmHooks: false
@@ -21,6 +25,9 @@ config:
   api:
     expose_config: 'True'
     base_url: https://nlb-poc-datapipeline.dev.sgdi.tech/airflow
+  kubernetes_executor:
+    delete_worker_pods: 'False'
+    delete_worker_pods_on_failure: 'False'
 
 # do not create persistent volumes for logs
 logs:
@@ -31,5 +38,10 @@ logs:
 workers:
   kubernetes:
     serviceAccount:
+      create: true
       annotations:
         eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSADagsterDagsterUserDeploymentsSwissgeoPocDatapipeline
+
+
+cleanup:
+  successfulJobsHistoryLimit: 3
