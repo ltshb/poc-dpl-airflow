@@ -26,6 +26,14 @@ uv add <package>
 
 Commit both `pyproject.toml` and `uv.lock` after changing dependencies.
 
+## Example Dags
+
+- `local_airflow_example` is a minimal scheduled TaskFlow Dag.
+- `restricted_service_account_example` is manually triggered and overrides its
+  KubernetesExecutor worker pod to use the
+  `airflow-worker-kubernetes-restricted` service account in the `airflow`
+  namespace.
+
 ## Build and push
 
 ```bash

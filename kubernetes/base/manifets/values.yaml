@@ -2,7 +2,7 @@
 fullnameOverride: airflow
 
 defaultAirflowRepository: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags
-defaultAirflowTag: local-ltshb-55fd6c0
+defaultAirflowTag: local-ltshb-b8c5159
 
 # Base on https://airflow.apache.org/docs/helm-chart/stable/index.html#installing-the-helm-chart-with-argo-cd-flux-rancher-or-terraform
 createUserJob:
