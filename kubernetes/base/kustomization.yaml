@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: airflow
 
 resources:
-  - namespace.yaml
+  # - namespace.yaml
   - serviceaccount-airflow-worker-kubernetes-restricted.yaml
   - manifets/rendered.yaml
   - ingress.yaml

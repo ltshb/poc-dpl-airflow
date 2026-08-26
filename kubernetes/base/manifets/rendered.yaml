@@ -34,6 +34,23 @@ metadata:
     heritage: Helm
 
 ---
+# Source: airflow/templates/database-cleanup/database-cleanup-serviceaccount.yaml
+################################
+## Airflow Database Cleanup ServiceAccount
+#################################
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: true
+metadata:
+  name: "airflow-database-cleanup"
+  labels:
+    tier: airflow
+    component: database-cleanup
+    release: release-name
+    chart: "airflow-1.22.0"
+    heritage: Helm
+
+---
 # Source: airflow/templates/jobs/create-user-job-serviceaccount.yaml
 #########################################
 ## Airflow Create User Job ServiceAccount
@@ -137,24 +154,6 @@ metadata:
     eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSADagsterDagsterUserDeploymentsSwissgeoPocDatapipeline
 
 ---
-# Source: airflow/charts/postgresql/templates/secrets.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: release-name-postgresql
-  namespace: "airflow"
-  labels:
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: postgresql
-    app.kubernetes.io/version: 16.1.0
-    helm.sh/chart: postgresql-13.2.24
-type: Opaque
-data:
-  postgres-password: "cG9zdGdyZXM="
-  # We don't auto-generate LDAP password when it's not provided as we do for other passwords
-
----
 # Source: airflow/templates/secrets/api-secret-key-secret.yaml
 ############################################
 ## Airflow Api Flask Secret Key Secret
@@ -171,7 +170,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  api-secret-key: "bUdqNFdFcmJvVlBuQlhwWVkwTENwV1NOYVM3Q3QwMm8="
+  api-secret-key: "UHlVMFVxMXNEZ2l6aVFSSUhia29WdjJsV0ZibEE2UG0="
 
 ---
 # Source: airflow/templates/secrets/jwt-secret.yaml
@@ -190,25 +189,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  jwt-secret: "bUZ0V3hRSVVVUVdpNVZHcXVYUzNEUE5oRlh4QUQzT2NiSE1xQjlmQ2U1Y25mZnpDblVPd21seXRzUWR2dVk0NzZ2M29YZjk0R29BQmt4ckFMeFBUZlVsYmF2VUFhbDhsWWZwcGRHNVhmaUdqVVhVa1dhcUR5aHZMUm9iMDFudHM="
-
----
-# Source: airflow/templates/secrets/metadata-connection-secret.yaml
-################################
-## Airflow Metadata Secret
-#################################
-apiVersion: v1
-kind: Secret
-metadata:
-  name: airflow-metadata
-  labels:
-    tier: airflow
-    release: release-name
-    chart: "airflow-1.22.0"
-    heritage: Helm
-type: Opaque
-data:
-  connection: "cG9zdGdyZXNxbDovL3Bvc3RncmVzOnBvc3RncmVzQHJlbGVhc2UtbmFtZS1wb3N0Z3Jlc3FsLmFpcmZsb3c6NTQzMi9wb3N0Z3Jlcz9zc2xtb2RlPWRpc2FibGU="
+  jwt-secret: "YWtYWjM2WWVZMUs4Y3pBZGZZUkJSM3Fjbk5Tbkw1TEU0ZHBnOTFld2pTeDFtb1IzTjFUbjFxZjlxQTFVTXlpSVZlWFFlQXpuOGUxTDljM3g4d29LNlNUenY5a1JSZk81RVFDWlByQjI5TGNMd0RCTFluTHlMM3BLMnhCa0xrOEM="
 
 ---
 # Source: airflow/templates/configmaps/configmap.yaml
@@ -333,12 +314,12 @@ data:
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW_CONN_AIRFLOW_DB
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW__API__SECRET_KEY
               valueFrom:
@@ -555,6 +536,22 @@ data:
       ttl: 0s
 
 ---
+# Source: airflow/templates/rbac/pod-database-cleanup-role.yaml
+################################
+## Airflow Database Cleanup Role
+#################################
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: airflow-database-cleanup-role
+  labels:
+    tier: airflow
+    release: release-name
+    chart: "airflow-1.22.0"
+    heritage: Helm
+rules: []
+
+---
 # Source: airflow/templates/rbac/pod-launcher-role.yaml
 ################################
 ## Airflow Pod Launcher Role
@@ -635,6 +632,29 @@ rules:
       - "list"
 
 ---
+# Source: airflow/templates/rbac/pod-database-cleanup-rolebinding.yaml
+################################
+## Airflow Database Cleanup Role Binding
+#################################
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: airflow-database-cleanup-rolebinding
+  labels:
+    tier: airflow
+    release: release-name
+    chart: "airflow-1.22.0"
+    heritage: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: airflow-database-cleanup-role
+subjects:
+  - kind: ServiceAccount
+    name: "airflow-database-cleanup"
+    namespace: "airflow"
+
+---
 # Source: airflow/templates/rbac/pod-launcher-rolebinding.yaml
 ################################
 ## Airflow Pod Launcher Role Binding
@@ -687,69 +707,6 @@ subjects:
   - kind: ServiceAccount
     name: "airflow-api-server"
     namespace: "airflow"
-
----
-# Source: airflow/charts/postgresql/templates/primary/svc-headless.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: release-name-postgresql-hl
-  namespace: "airflow"
-  labels:
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: postgresql
-    app.kubernetes.io/version: 16.1.0
-    helm.sh/chart: postgresql-13.2.24
-    app.kubernetes.io/component: primary
-  annotations:
-    # Use this annotation in addition to the actual publishNotReadyAddresses
-    # field below because the annotation will stop being respected soon but the
-    # field is broken in some versions of Kubernetes:
-    # https://github.com/kubernetes/kubernetes/issues/58662
-    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
-spec:
-  type: ClusterIP
-  clusterIP: None
-  # We want all pods in the StatefulSet to have their addresses published for
-  # the sake of the other Postgresql pods even before they're ready, since they
-  # have to be able to talk to each other in order to become ready.
-  publishNotReadyAddresses: true
-  ports:
-    - name: tcp-postgresql
-      port: 5432
-      targetPort: tcp-postgresql
-  selector:
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/name: postgresql
-    app.kubernetes.io/component: primary
-
----
-# Source: airflow/charts/postgresql/templates/primary/svc.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: release-name-postgresql
-  namespace: "airflow"
-  labels:
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: postgresql
-    app.kubernetes.io/version: 16.1.0
-    helm.sh/chart: postgresql-13.2.24
-    app.kubernetes.io/component: primary
-spec:
-  type: ClusterIP
-  sessionAffinity: None
-  ports:
-    - name: tcp-postgresql
-      port: 5432
-      targetPort: tcp-postgresql
-      nodePort: null
-  selector:
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/name: postgresql
-    app.kubernetes.io/component: primary
 
 ---
 # Source: airflow/templates/api-server/api-server-service.yaml
@@ -880,12 +837,12 @@ spec:
         component: api-server
         release: release-name
       annotations:
-        checksum/metadata-secret: c02fd680326c4be7affd827a41b102805b091744e10c007041c7ea6147f70830
+        checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: c870ea21420174381f3b966af20e0edb128513482a6a0c5ffa916eccf4fc34c1
+        checksum/airflow-config: bea4e38ee63089cd9198a1bf8cc2209fac29b8d95d8d9142bbe3e452f74ea171
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: aeacb6496f435abaa07102c98fb7de0894b4f3d2620e31babc9a1330f25e84a5
+        checksum/jwt-secret: 080fd3b7d68738b8e48fde21d35dc1120f73712e3ae3c42a79688c4a7a1f6122
     spec:
       serviceAccountName: "airflow-api-server"
       
@@ -953,12 +910,12 @@ spec:
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW_CONN_AIRFLOW_DB
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW__API__SECRET_KEY
               valueFrom:
@@ -1036,12 +993,12 @@ spec:
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW_CONN_AIRFLOW_DB
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW__API__SECRET_KEY
               valueFrom:
@@ -1092,9 +1049,9 @@ spec:
         component: dag-processor
         release: release-name
       annotations:
-        checksum/metadata-secret: c02fd680326c4be7affd827a41b102805b091744e10c007041c7ea6147f70830
+        checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: c870ea21420174381f3b966af20e0edb128513482a6a0c5ffa916eccf4fc34c1
+        checksum/airflow-config: bea4e38ee63089cd9198a1bf8cc2209fac29b8d95d8d9142bbe3e452f74ea171
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1166,12 +1123,12 @@ spec:
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW_CONN_AIRFLOW_DB
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW__API__SECRET_KEY
               valueFrom:
@@ -1221,12 +1178,12 @@ spec:
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW_CONN_AIRFLOW_DB
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW__API__SECRET_KEY
               valueFrom:
@@ -1312,13 +1269,13 @@ spec:
         component: scheduler
         release: release-name
       annotations:
-        checksum/metadata-secret: c02fd680326c4be7affd827a41b102805b091744e10c007041c7ea6147f70830
+        checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/result-backend-secret: 98a68f230007cfa8f5d3792e1aff843a76b0686409e4a46ab2f092f6865a1b71
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: c870ea21420174381f3b966af20e0edb128513482a6a0c5ffa916eccf4fc34c1
+        checksum/airflow-config: bea4e38ee63089cd9198a1bf8cc2209fac29b8d95d8d9142bbe3e452f74ea171
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: 56cea580cd555e58c86755b4bbdea48c0ba7c5bac4f0d64feba267ab42355781
+        checksum/jwt-secret: bfb87cd5e2caa174916fb8080b65deba27c75ad471f7cd3e8a50d8ecca359a13
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       nodeSelector:
@@ -1390,12 +1347,12 @@ spec:
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW_CONN_AIRFLOW_DB
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW__API__SECRET_KEY
               valueFrom:
@@ -1432,12 +1389,12 @@ spec:
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW_CONN_AIRFLOW_DB
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW__API__SECRET_KEY
               valueFrom:
@@ -1615,170 +1572,6 @@ spec:
             name: airflow-statsd
 
 ---
-# Source: airflow/charts/postgresql/templates/primary/statefulset.yaml
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: release-name-postgresql
-  namespace: "airflow"
-  labels:
-    app.kubernetes.io/instance: release-name
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: postgresql
-    app.kubernetes.io/version: 16.1.0
-    helm.sh/chart: postgresql-13.2.24
-    app.kubernetes.io/component: primary
-spec:
-  replicas: 1
-  serviceName: release-name-postgresql-hl
-  updateStrategy:
-    rollingUpdate: {}
-    type: RollingUpdate
-  selector:
-    matchLabels:
-      app.kubernetes.io/instance: release-name
-      app.kubernetes.io/name: postgresql
-      app.kubernetes.io/component: primary
-  template:
-    metadata:
-      name: release-name-postgresql
-      labels:
-        app.kubernetes.io/instance: release-name
-        app.kubernetes.io/managed-by: Helm
-        app.kubernetes.io/name: postgresql
-        app.kubernetes.io/version: 16.1.0
-        helm.sh/chart: postgresql-13.2.24
-        app.kubernetes.io/component: primary
-    spec:
-      serviceAccountName: default
-      
-      affinity:
-        podAffinity:
-          
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - podAffinityTerm:
-                labelSelector:
-                  matchLabels:
-                    app.kubernetes.io/instance: release-name
-                    app.kubernetes.io/name: postgresql
-                    app.kubernetes.io/component: primary
-                topologyKey: kubernetes.io/hostname
-              weight: 1
-        nodeAffinity:
-          
-      securityContext:
-        fsGroup: 1001
-      hostNetwork: false
-      hostIPC: false
-      containers:
-        - name: postgresql
-          image: docker.io/bitnamilegacy/postgresql:16.1.0-debian-11-r15
-          imagePullPolicy: "IfNotPresent"
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-              - ALL
-            privileged: false
-            readOnlyRootFilesystem: false
-            runAsNonRoot: true
-            runAsUser: 1001
-            seccompProfile:
-              type: RuntimeDefault
-          env:
-            - name: BITNAMI_DEBUG
-              value: "false"
-            - name: POSTGRESQL_PORT_NUMBER
-              value: "5432"
-            - name: POSTGRESQL_VOLUME_DIR
-              value: "/bitnami/postgresql"
-            - name: PGDATA
-              value: "/bitnami/postgresql/data"
-            # Authentication
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: release-name-postgresql
-                  key: postgres-password
-            # Replication
-            # Initdb
-            # Standby
-            # LDAP
-            - name: POSTGRESQL_ENABLE_LDAP
-              value: "no"
-            # TLS
-            - name: POSTGRESQL_ENABLE_TLS
-              value: "no"
-            # Audit
-            - name: POSTGRESQL_LOG_HOSTNAME
-              value: "false"
-            - name: POSTGRESQL_LOG_CONNECTIONS
-              value: "false"
-            - name: POSTGRESQL_LOG_DISCONNECTIONS
-              value: "false"
-            - name: POSTGRESQL_PGAUDIT_LOG_CATALOG
-              value: "off"
-            # Others
-            - name: POSTGRESQL_CLIENT_MIN_MESSAGES
-              value: "error"
-            - name: POSTGRESQL_SHARED_PRELOAD_LIBRARIES
-              value: "pgaudit"
-          ports:
-            - name: tcp-postgresql
-              containerPort: 5432
-          livenessProbe:
-            failureThreshold: 6
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 5
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - exec pg_isready -U "postgres" -h 127.0.0.1 -p 5432
-          readinessProbe:
-            failureThreshold: 6
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 5
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - -e
-                - |
-                  exec pg_isready -U "postgres" -h 127.0.0.1 -p 5432
-          resources:
-            limits: {}
-            requests:
-              cpu: 250m
-              memory: 256Mi
-          volumeMounts:
-            - name: dshm
-              mountPath: /dev/shm
-            - name: data
-              mountPath: /bitnami/postgresql
-      volumes:
-        - name: dshm
-          emptyDir:
-            medium: Memory
-  volumeClaimTemplates:
-    - apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: data
-      spec:
-        accessModes:
-          - "ReadWriteOnce"
-        resources:
-          requests:
-            storage: "8Gi"
-        
-
----
 # Source: airflow/templates/triggerer/triggerer-deployment.yaml
 ################################
 ## Airflow Triggerer Deployment
@@ -1808,9 +1601,9 @@ spec:
         component: triggerer
         release: release-name
       annotations:
-        checksum/metadata-secret: c02fd680326c4be7affd827a41b102805b091744e10c007041c7ea6147f70830
+        checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: c870ea21420174381f3b966af20e0edb128513482a6a0c5ffa916eccf4fc34c1
+        checksum/airflow-config: bea4e38ee63089cd9198a1bf8cc2209fac29b8d95d8d9142bbe3e452f74ea171
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1884,12 +1677,12 @@ spec:
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW_CONN_AIRFLOW_DB
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW__API__SECRET_KEY
               valueFrom:
@@ -1939,12 +1732,12 @@ spec:
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW_CONN_AIRFLOW_DB
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW__API__SECRET_KEY
               valueFrom:
@@ -2088,12 +1881,12 @@ spec:
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW_CONN_AIRFLOW_DB
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW__API__SECRET_KEY
               valueFrom:
@@ -2188,12 +1981,12 @@ spec:
             - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW_CONN_AIRFLOW_DB
               valueFrom:
                 secretKeyRef:
-                  name: airflow-metadata
+                  name: airflow-db-secret
                   key: connection
             - name: AIRFLOW__API__SECRET_KEY
               valueFrom:
@@ -2215,6 +2008,115 @@ spec:
         - name: config
           configMap:
             name: airflow-config
+
+---
+# Source: airflow/templates/database-cleanup/database-cleanup-cronjob.yaml
+################################
+## Airflow Database Cleanup CronJob
+#################################
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: airflow-database-cleanup
+  labels:
+    tier: airflow
+    component: database-cleanup
+    release: release-name
+    chart: "airflow-1.22.0"
+    heritage: Helm
+spec:
+  schedule: "0 0 * * 0"
+  # The cron job does not allow concurrent runs; if it is time for a new job run and the previous job run hasn't finished yet, the cron job skips the new job run
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            tier: airflow
+            component: database-cleanup
+            release: release-name
+          annotations:
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            {}
+          affinity:
+            {}
+          tolerations:
+            []
+          topologySpreadConstraints:
+            []
+          serviceAccountName: "airflow-database-cleanup"
+          
+          imagePullSecrets:
+            []
+          securityContext: 
+            
+            runAsUser: 50000
+            fsGroup: 0
+          containers:
+            - name: database-cleanup
+              image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-b8c5159
+              imagePullPolicy: IfNotPresent
+              securityContext: 
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              args: 
+                - bash
+                - -c
+                - CLEAN_TS=$(date -d "-90 days" +"%Y-%m-%dT%H:%M:%S");
+                  echo "Cleaning up metadata DB entries older than ${CLEAN_TS}"; exec airflow db clean
+                  --clean-before-timestamp "${CLEAN_TS}" --yes --verbose
+              envFrom:              
+                []
+              env:              
+                # Dynamically created environment variables
+                # Dynamically created secret envs
+                # Extra env              
+                # Hard Coded Airflow Envs
+                - name: AIRFLOW_HOME
+                  value: /opt/airflow
+                - name: AIRFLOW__CORE__FERNET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: airflow-fernet-key
+                      key: fernet-key
+                - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+                  valueFrom:
+                    secretKeyRef:
+                      name: airflow-db-secret
+                      key: connection
+                - name: AIRFLOW_CONN_AIRFLOW_DB
+                  valueFrom:
+                    secretKeyRef:
+                      name: airflow-db-secret
+                      key: connection
+                - name: AIRFLOW__API__SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: airflow-api-secret-key
+                      key: api-secret-key              
+              volumeMounts:
+                - name: config
+                  mountPath: "/opt/airflow/airflow.cfg"
+                  subPath: airflow.cfg
+                  readOnly: true
+                - name: config
+                  mountPath: "/opt/airflow/config/airflow_local_settings.py"
+                  subPath: airflow_local_settings.py
+                  readOnly: true
+              resources:
+                {}
+          volumes:
+            - name: config
+              configMap:
+                name: airflow-config
 
 ---
 # Source: airflow/templates/api-server/api-server-hpa.yaml
@@ -2288,18 +2190,6 @@ spec:
 ######################################
 ## Airflow Dags PersistentVolumeClaim
 ######################################
-
----
-# Source: airflow/templates/database-cleanup/database-cleanup-cronjob.yaml
-################################
-## Airflow Database Cleanup CronJob
-#################################
-
----
-# Source: airflow/templates/database-cleanup/database-cleanup-serviceaccount.yaml
-################################
-## Airflow Database Cleanup ServiceAccount
-#################################
 
 ---
 # Source: airflow/templates/flower/flower-deployment.yaml
@@ -2434,18 +2324,6 @@ spec:
 #################################
 
 ---
-# Source: airflow/templates/rbac/pod-database-cleanup-role.yaml
-################################
-## Airflow Database Cleanup Role
-#################################
-
----
-# Source: airflow/templates/rbac/pod-database-cleanup-rolebinding.yaml
-################################
-## Airflow Database Cleanup Role Binding
-#################################
-
----
 # Source: airflow/templates/rbac/security-context-constraint-rolebinding.yaml
 ###########################
 ## Airflow SCC Role Binding
@@ -2521,6 +2399,12 @@ spec:
 # Source: airflow/templates/secrets/kerberos-keytab-secret.yaml
 ################################
 ## Kerberos Secret
+#################################
+
+---
+# Source: airflow/templates/secrets/metadata-connection-secret.yaml
+################################
+## Airflow Metadata Secret
 #################################
 
 ---
@@ -2699,7 +2583,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "YlU0NFdrWmhlVnBEYjFSVFYydFdjVTFJYzJoWGNHcHdiMDVUZW5WRVdqST0="
+  fernet-key: "VlhaTFpuTklkRkZ3TW5GelptWlZOMWR6YzJGaVoxRmpPVU4wVDIxQ2RrVT0="
 
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
@@ -2730,7 +2614,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  password: "WGdwRHI0dU9hZw=="
+  password: "MTFhcnFXNjljbg=="
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
 ##################################
@@ -2752,5 +2636,5 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  connection: "cmVkaXM6Ly86WGdwRHI0dU9hZ0BhaXJmbG93LXJlZGlzOjYzNzkvMA=="
+  connection: "cmVkaXM6Ly86MTFhcnFXNjljbkBhaXJmbG93LXJlZGlzOjYzNzkvMA=="
 
