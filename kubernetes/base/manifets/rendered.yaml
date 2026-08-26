@@ -14,6 +14,8 @@ metadata:
     release: release-name
     chart: "airflow-1.22.0"
     heritage: Helm
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
 
 ---
 # Source: airflow/templates/dag-processor/dag-processor-serviceaccount.yaml
@@ -32,6 +34,8 @@ metadata:
     release: release-name
     chart: "airflow-1.22.0"
     heritage: Helm
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
 
 ---
 # Source: airflow/templates/database-cleanup/database-cleanup-serviceaccount.yaml
@@ -66,6 +70,8 @@ metadata:
     release: release-name
     chart: "airflow-1.22.0"
     heritage: Helm
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
 
 ---
 # Source: airflow/templates/jobs/migrate-database-job-serviceaccount.yaml
@@ -83,6 +89,8 @@ metadata:
     release: release-name
     chart: "airflow-1.22.0"
     heritage: Helm
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
 
 ---
 # Source: airflow/templates/scheduler/scheduler-serviceaccount.yaml
@@ -99,6 +107,8 @@ metadata:
     release: release-name
     chart: "airflow-1.22.0"
     heritage: Helm
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
 
 ---
 # Source: airflow/templates/statsd/statsd-serviceaccount.yaml
@@ -133,6 +143,8 @@ metadata:
     release: release-name
     chart: "airflow-1.22.0"
     heritage: Helm
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
 
 ---
 # Source: airflow/templates/workers/worker-kubernetes-serviceaccount.yaml
@@ -151,7 +163,7 @@ metadata:
     chart: "airflow-1.22.0"
     heritage: Helm
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSADagsterDagsterUserDeploymentsSwissgeoPocDatapipeline
+    eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
 
 ---
 # Source: airflow/templates/secrets/api-secret-key-secret.yaml
@@ -170,7 +182,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  api-secret-key: "UHlVMFVxMXNEZ2l6aVFSSUhia29WdjJsV0ZibEE2UG0="
+  api-secret-key: "azdQOFYzYk15ajlWS1R6dmM3TlJmQ0N4bEQzMlNJZno="
 
 ---
 # Source: airflow/templates/secrets/jwt-secret.yaml
@@ -189,7 +201,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  jwt-secret: "YWtYWjM2WWVZMUs4Y3pBZGZZUkJSM3Fjbk5Tbkw1TEU0ZHBnOTFld2pTeDFtb1IzTjFUbjFxZjlxQTFVTXlpSVZlWFFlQXpuOGUxTDljM3g4d29LNlNUenY5a1JSZk81RVFDWlByQjI5TGNMd0RCTFluTHlMM3BLMnhCa0xrOEM="
+  jwt-secret: "WjFBNGg4ZzlWbGhDQktmVlVBU29KZVg5aHpLZzlyVUgzT0tzeFdhYzVPVHlqZzd1cFpXeUFNU2UwSVdmelpOMUlweWV5bFFoRHFEc2dBamZQRFBjOXB3UjIwbGR6OXlhbm1VZGFRcTdTYmpQYVZFbUpSZG5GWjkwS3U0VGU4dnE="
 
 ---
 # Source: airflow/templates/configmaps/configmap.yaml
@@ -210,7 +222,7 @@ data:
   # These are system-specified config overrides.
   airflow.cfg: |-
     [api]
-    base_url = https://nlb-poc-datapipeline.dev.sgdi.tech/airflow
+    base_url = https://nlb-poc-datapipeline.poc-datapipeline.sgdi.tech/airflow
     expose_config = True
     
     [celery]
@@ -350,6 +362,9 @@ data:
               mountPath: "/opt/airflow/config/airflow_local_settings.py"
               subPath: airflow_local_settings.py
               readOnly: true
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
+              readOnly: true
       imagePullSecrets:
         []
       restartPolicy: Never
@@ -375,6 +390,12 @@ data:
       - configMap:
           name: airflow-config
         name: config
+      - csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: aws-secrets-airflow
+        name: aws-secrets-airflow
     
 
 ---
@@ -839,10 +860,10 @@ spec:
       annotations:
         checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: bea4e38ee63089cd9198a1bf8cc2209fac29b8d95d8d9142bbe3e452f74ea171
+        checksum/airflow-config: 4fc70edaf1a0c29cff3da19a6acd36d90caeb24a5627b001b5cbef17df2bdcb2
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: 080fd3b7d68738b8e48fde21d35dc1120f73712e3ae3c42a79688c4a7a1f6122
+        checksum/jwt-secret: 8aa85794b4e4983aafb54b7f8c39c6936f25d714fc4a120ef9dbdea9c92636f9
     spec:
       serviceAccountName: "airflow-api-server"
       
@@ -887,6 +908,9 @@ spec:
             - name: config
               mountPath: "/opt/airflow/config/airflow_local_settings.py"
               subPath: airflow_local_settings.py
+              readOnly: true
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
               readOnly: true
           args:          
             - airflow
@@ -945,6 +969,9 @@ spec:
             - name: config
               mountPath: "/opt/airflow/config/airflow_local_settings.py"
               subPath: airflow_local_settings.py
+              readOnly: true
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
               readOnly: true
           ports:
             - name: api-server
@@ -1014,6 +1041,12 @@ spec:
         - name: config
           configMap:
             name: airflow-config
+        - csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: aws-secrets-airflow
+          name: aws-secrets-airflow
 
 ---
 # Source: airflow/templates/dag-processor/dag-processor-deployment.yaml
@@ -1051,7 +1084,7 @@ spec:
       annotations:
         checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: bea4e38ee63089cd9198a1bf8cc2209fac29b8d95d8d9142bbe3e452f74ea171
+        checksum/airflow-config: 4fc70edaf1a0c29cff3da19a6acd36d90caeb24a5627b001b5cbef17df2bdcb2
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1093,6 +1126,9 @@ spec:
               drop:
                 - ALL
           volumeMounts:
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
+              readOnly: true
             - name: config
               mountPath: "/opt/airflow/airflow.cfg"
               subPath: airflow.cfg
@@ -1151,6 +1187,9 @@ spec:
           resources:
             {}
           volumeMounts:
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
+              readOnly: true
             - name: logs
               mountPath: "/opt/airflow/logs"
             - name: config
@@ -1227,10 +1266,19 @@ spec:
           volumeMounts:
             - name: logs
               mountPath: "/opt/airflow/logs"
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
+              readOnly: true
       volumes:
         - name: config
           configMap:
             name: airflow-config
+        - csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: aws-secrets-airflow
+          name: aws-secrets-airflow
         - name: logs
           emptyDir:
             {}
@@ -1272,10 +1320,10 @@ spec:
         checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/result-backend-secret: 98a68f230007cfa8f5d3792e1aff843a76b0686409e4a46ab2f092f6865a1b71
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: bea4e38ee63089cd9198a1bf8cc2209fac29b8d95d8d9142bbe3e452f74ea171
+        checksum/airflow-config: 4fc70edaf1a0c29cff3da19a6acd36d90caeb24a5627b001b5cbef17df2bdcb2
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: bfb87cd5e2caa174916fb8080b65deba27c75ad471f7cd3e8a50d8ecca359a13
+        checksum/jwt-secret: 00cef5561060b5dbbec518c9c6d3ceafe32130e3c5f87672ab452fe2a4da8b9a
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       nodeSelector:
@@ -1324,6 +1372,9 @@ spec:
             - name: config
               mountPath: "/opt/airflow/config/airflow_local_settings.py"
               subPath: airflow_local_settings.py
+              readOnly: true
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
               readOnly: true
           args:          
             - airflow
@@ -1447,6 +1498,9 @@ spec:
               mountPath: "/opt/airflow/config/airflow_local_settings.py"
               subPath: airflow_local_settings.py
               readOnly: true
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
+              readOnly: true
             
         - name: scheduler-log-groomer
           resources:
@@ -1473,10 +1527,19 @@ spec:
           volumeMounts:
             - name: logs
               mountPath: "/opt/airflow/logs"
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
+              readOnly: true
       volumes:
         - name: config
           configMap:
             name: airflow-config
+        - csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: aws-secrets-airflow
+          name: aws-secrets-airflow
         
         - name: logs
           emptyDir:
@@ -1603,7 +1666,7 @@ spec:
       annotations:
         checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: bea4e38ee63089cd9198a1bf8cc2209fac29b8d95d8d9142bbe3e452f74ea171
+        checksum/airflow-config: 4fc70edaf1a0c29cff3da19a6acd36d90caeb24a5627b001b5cbef17df2bdcb2
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1655,6 +1718,9 @@ spec:
               mountPath: "/opt/airflow/config/airflow_local_settings.py"
               subPath: airflow_local_settings.py
               readOnly: true
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
+              readOnly: true
           args:          
             - airflow
             - db
@@ -1705,6 +1771,9 @@ spec:
           resources:
             {}
           volumeMounts:
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
+              readOnly: true
             - name: logs
               mountPath: "/opt/airflow/logs"
             - name: config
@@ -1785,10 +1854,19 @@ spec:
           volumeMounts:
             - name: logs
               mountPath: "/opt/airflow/logs"
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
+              readOnly: true
       volumes:
         - name: config
           configMap:
             name: airflow-config
+        - csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: aws-secrets-airflow
+          name: aws-secrets-airflow
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim
@@ -1904,10 +1982,19 @@ spec:
               mountPath: "/opt/airflow/config/airflow_local_settings.py"
               subPath: airflow_local_settings.py
               readOnly: true
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
+              readOnly: true
       volumes:
         - name: config
           configMap:
             name: airflow-config
+        - csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: aws-secrets-airflow
+          name: aws-secrets-airflow
 
 ---
 # Source: airflow/templates/jobs/migrate-database-job.yaml
@@ -2004,10 +2091,19 @@ spec:
               mountPath: "/opt/airflow/config/airflow_local_settings.py"
               subPath: airflow_local_settings.py
               readOnly: true
+            - mountPath: /mnt/secrets-store/aws-secrets-airflow
+              name: aws-secrets-airflow
+              readOnly: true
       volumes:
         - name: config
           configMap:
             name: airflow-config
+        - csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: aws-secrets-airflow
+          name: aws-secrets-airflow
 
 ---
 # Source: airflow/templates/database-cleanup/database-cleanup-cronjob.yaml
@@ -2111,12 +2207,21 @@ spec:
                   mountPath: "/opt/airflow/config/airflow_local_settings.py"
                   subPath: airflow_local_settings.py
                   readOnly: true
+                - mountPath: /mnt/secrets-store/aws-secrets-airflow
+                  name: aws-secrets-airflow
+                  readOnly: true
               resources:
                 {}
           volumes:
             - name: config
               configMap:
                 name: airflow-config
+            - csi:
+                driver: secrets-store.csi.k8s.io
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: aws-secrets-airflow
+              name: aws-secrets-airflow
 
 ---
 # Source: airflow/templates/api-server/api-server-hpa.yaml
@@ -2583,7 +2688,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "VlhaTFpuTklkRkZ3TW5GelptWlZOMWR6YzJGaVoxRmpPVU4wVDIxQ2RrVT0="
+  fernet-key: "YkZwdVdteHhhMU41VEZaVWNUVnFkbkZHTjNCS2NHeE5WMDgyT1c5bVduUT0="
 
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
@@ -2614,7 +2719,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  password: "MTFhcnFXNjljbg=="
+  password: "THl4VzVOeG10Ug=="
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
 ##################################
@@ -2636,5 +2741,5 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  connection: "cmVkaXM6Ly86MTFhcnFXNjljbkBhaXJmbG93LXJlZGlzOjYzNzkvMA=="
+  connection: "cmVkaXM6Ly86THl4VzVOeG10UkBhaXJmbG93LXJlZGlzOjYzNzkvMA=="
 
