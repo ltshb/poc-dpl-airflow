@@ -5,6 +5,7 @@ defaultAirflowRepository: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-da
 defaultAirflowTag: local-ltshb-b8c5159
 
 apiSecretKeySecretName: airflow-api-secret-key
+jwtSecretName: airflow-jwt-secret
 
 dagInitContainerImage:
   repository: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only

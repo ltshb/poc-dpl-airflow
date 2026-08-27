@@ -166,25 +166,6 @@ metadata:
     eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
 
 ---
-# Source: airflow/templates/secrets/jwt-secret.yaml
-############################################
-## Airflow JWT Secret
-############################################
-apiVersion: v1
-kind: Secret
-metadata:
-  name: airflow-jwt-secret
-  labels:
-    tier: airflow
-    component: api-server
-    release: release-name
-    chart: airflow
-    heritage: Helm
-type: Opaque
-data:
-  jwt-secret: "c3JCZjRhT2pYRmF0ajA2ODl0VUQyYzZlRW01QkMwa1Jja2dQVmlwcVRLY2IxbzFWWWUwOVc0VDlBZFlFenFjOTgzcFNhTXdlZTZVTEhRdGlZVWVRZkZzZjg1TUlEdVlET2Y2TTRRUWhhYk1GMk5UWkxPWXRFam9xdVloeE9NR1I="
-
----
 # Source: airflow/templates/configmaps/configmap.yaml
 ################################
 ## Airflow ConfigMap
@@ -865,7 +846,6 @@ spec:
         checksum/airflow-config: d734de4f6f4d0400d822cc9db1820f9ea979be91e07f427398ad0ae3117a934d
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: 9b90184616f13cb45414824b067586e6014b6be64d823654482ea6139fa67481
     spec:
       serviceAccountName: "airflow-api-server"
       
@@ -1354,7 +1334,6 @@ spec:
         checksum/airflow-config: d734de4f6f4d0400d822cc9db1820f9ea979be91e07f427398ad0ae3117a934d
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: b3436f38312b08dfcebe13fefa8bed5f6ae5edb9f822182595207ef8ab65327d
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       nodeSelector:
@@ -2569,6 +2548,12 @@ spec:
 #################################
 
 ---
+# Source: airflow/templates/secrets/jwt-secret.yaml
+############################################
+## Airflow JWT Secret
+############################################
+
+---
 # Source: airflow/templates/secrets/kerberos-keytab-secret.yaml
 ################################
 ## Kerberos Secret
@@ -2769,5 +2754,5 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "TURJeFFXaEdPV2N5YTFCS1dXSjBPR3hNY1d0MlVuVk9WWGxqYTFwbWN6RT0="
+  fernet-key: "YzJwWWJWTlJVa2RPUmpaaFpVdE1kVzg0Y1hBeVFqUkxSMEkwVldaUVRXND0="
 

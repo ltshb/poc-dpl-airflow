@@ -28,6 +28,8 @@ CREATE DATABASE "airflow-db";
 
 ## Secrets
 
+### Airflow API server secret key
+
 Generate a strong Airflow API server secret key and create or update the
 Kubernetes Secret:
 
@@ -46,6 +48,30 @@ metadata:
 type: Opaque
 data:
   api-secret-key: $(printf '%s' "$(python3 -c 'import secrets; print(secrets.token_hex(16))')" | base64)
+EOF
+```
+
+### Airflow JWT secret
+
+Generate a strong Airflow JWT secret and create or update the Kubernetes
+Secret:
+
+```bash
+_KEY=$(printf '%s' "$(python3 -c 'import secrets; print(secrets.token_hex(32))')" | base64 -w 0)
+kubectl apply --namespace airflow -f - <<EOF
+############################################
+## Airflow JWT Secret
+############################################
+apiVersion: v1
+kind: Secret
+metadata:
+  name: airflow-jwt-secret
+  labels:
+    tier: airflow
+    component: api-server
+type: Opaque
+data:
+  jwt-secret: "${_KEY}"
 EOF
 ```
 
