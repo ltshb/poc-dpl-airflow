@@ -152,7 +152,16 @@ dagProcessor:
         - name: dags
           mountPath: /opt/airflow/dags
 
+# Periodically remove completed KubernetesExecutor worker pods that are kept
+# because config.kubernetes_executor.delete_worker_pods is disabled.
 cleanup:
+  enabled: true
+  # Run every 15 minutes.
+  schedule: "*/15 * * * *"
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 1
+  jobAnnotations:
+    reloader.stakater.com/auto: "true"
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
@@ -188,10 +197,6 @@ workers:
         volumeMounts:
           - name: dags
             mountPath: /opt/airflow/dags
-
-
-cleanup:
-  successfulJobsHistoryLimit: 3
 
 # Database
 postgresql:

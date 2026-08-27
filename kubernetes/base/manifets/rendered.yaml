@@ -18,6 +18,25 @@ metadata:
     eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
 
 ---
+# Source: airflow/templates/cleanup/cleanup-serviceaccount.yaml
+################################
+## Airflow Cleanup ServiceAccount
+#################################
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: true
+metadata:
+  name: "airflow-cleanup"
+  labels:
+    tier: airflow
+    component: airflow-cleanup-pods
+    release: release-name
+    chart: "airflow-1.22.0"
+    heritage: Helm
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
+
+---
 # Source: airflow/templates/dag-processor/dag-processor-serviceaccount.yaml
 #######################################
 ## Airflow Dag Processor ServiceAccount
@@ -538,6 +557,29 @@ data:
       ttl: 0s
 
 ---
+# Source: airflow/templates/rbac/pod-cleanup-role.yaml
+################################
+## Airflow Cleanup Role
+#################################
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: airflow-cleanup-role
+  labels:
+    tier: airflow
+    release: release-name
+    chart: "airflow-1.22.0"
+    heritage: Helm
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - "pods"
+    verbs:
+      - "list"
+      - "delete"
+
+---
 # Source: airflow/templates/rbac/pod-database-cleanup-role.yaml
 ################################
 ## Airflow Database Cleanup Role
@@ -632,6 +674,29 @@ rules:
     verbs:
       - "get"
       - "list"
+
+---
+# Source: airflow/templates/rbac/pod-cleanup-rolebinding.yaml
+################################
+## Airflow Cleanup Role Binding
+#################################
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: airflow-cleanup-rolebinding
+  labels:
+    tier: airflow
+    release: release-name
+    chart: "airflow-1.22.0"
+    heritage: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: airflow-cleanup-role
+subjects:
+  - kind: ServiceAccount
+    name: "airflow-cleanup"
+    namespace: "airflow"
 
 ---
 # Source: airflow/templates/rbac/pod-database-cleanup-rolebinding.yaml
@@ -2150,6 +2215,121 @@ spec:
           name: aws-secrets-airflow
 
 ---
+# Source: airflow/templates/cleanup/cleanup-cronjob.yaml
+################################
+## Airflow Cleanup Pods CronJob
+#################################
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: airflow-cleanup
+  labels:
+    tier: airflow
+    component: airflow-cleanup-pods
+    release: release-name
+    chart: "airflow-1.22.0"
+    heritage: Helm
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  schedule: "*/15 * * * *"
+  # The cron job does not allow concurrent runs; if it is time for a new job run and the previous job run hasn't finished yet, the cron job skips the new job run
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            tier: airflow
+            component: airflow-cleanup-pods
+            release: release-name
+          annotations:
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            {}
+          affinity:
+            {}
+          tolerations:
+            []
+          topologySpreadConstraints:
+            []
+          serviceAccountName: "airflow-cleanup"
+          
+          imagePullSecrets:
+            []
+          securityContext: 
+            
+            runAsUser: 50000
+            fsGroup: 0
+          containers:
+            - name: airflow-cleanup-pods
+              image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-b8c5159
+              imagePullPolicy: IfNotPresent
+              securityContext: 
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              args: 
+                - bash
+                - -c
+                - exec airflow kubernetes cleanup-pods --namespace=airflow
+              env:            
+              # Hard Coded Airflow Envs
+              - name: AIRFLOW_HOME
+                value: /opt/airflow
+              - name: AIRFLOW__CORE__FERNET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: airflow-fernet-key
+                    key: fernet-key
+              - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+                valueFrom:
+                  secretKeyRef:
+                    name: airflow-db-secret
+                    key: connection
+              - name: AIRFLOW_CONN_AIRFLOW_DB
+                valueFrom:
+                  secretKeyRef:
+                    name: airflow-db-secret
+                    key: connection
+              - name: AIRFLOW__API__SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: airflow-api-secret-key
+                    key: api-secret-key            
+              volumeMounts:
+                - name: config
+                  mountPath: "/opt/airflow/airflow.cfg"
+                  subPath: airflow.cfg
+                  readOnly: true
+                - name: config
+                  mountPath: "/opt/airflow/config/airflow_local_settings.py"
+                  subPath: airflow_local_settings.py
+                  readOnly: true
+                - mountPath: /mnt/secrets-store/aws-secrets-airflow
+                  name: aws-secrets-airflow
+                  readOnly: true
+                
+              resources:
+                {}
+          volumes:
+            - name: config
+              configMap:
+                name: airflow-config
+            - csi:
+                driver: secrets-store.csi.k8s.io
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: aws-secrets-airflow
+              name: aws-secrets-airflow
+            
+
+---
 # Source: airflow/templates/database-cleanup/database-cleanup-cronjob.yaml
 ################################
 ## Airflow Database Cleanup CronJob
@@ -2291,18 +2471,6 @@ spec:
 # Source: airflow/templates/api-server/api-server-poddisruptionbudget.yaml
 ################################
 ## Airflow API Server PodDisruptionBudget
-#################################
-
----
-# Source: airflow/templates/cleanup/cleanup-cronjob.yaml
-################################
-## Airflow Cleanup Pods CronJob
-#################################
-
----
-# Source: airflow/templates/cleanup/cleanup-serviceaccount.yaml
-################################
-## Airflow Cleanup ServiceAccount
 #################################
 
 ---
@@ -2460,18 +2628,6 @@ spec:
 # Source: airflow/templates/rbac/job-launcher-rolebinding.yaml
 ################################
 ## Airflow Job Launcher Role Binding
-#################################
-
----
-# Source: airflow/templates/rbac/pod-cleanup-role.yaml
-################################
-## Airflow Cleanup Role
-#################################
-
----
-# Source: airflow/templates/rbac/pod-cleanup-rolebinding.yaml
-################################
-## Airflow Cleanup Role Binding
 #################################
 
 ---
