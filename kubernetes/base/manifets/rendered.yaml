@@ -182,7 +182,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  api-secret-key: "dU5lRTE4eVhON2dESlQ4T2VNTkFZbWZ2Z0U5QjU4NTA="
+  api-secret-key: "Mjk3QUpjYlFsc3ROa0FnWkVOcjNDRTVQcURmS09CRVQ="
 
 ---
 # Source: airflow/templates/secrets/jwt-secret.yaml
@@ -201,7 +201,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  jwt-secret: "dnpkV011WGtYMWk2a0JUVndUVUtFbUNPVWZVQlFsQWt4U0xpOTRSbU14V2xIZWZDbXJVVHBFM2k0UVVqTDNOek0ySFc5c0taMW4wRzU2UzJseXhJaDd6VUNydjh0MW84M0tVUWIwT1FCR0FMT2J5dnFkSGZxRzk2MDhVZ0Q0Qlo="
+  jwt-secret: "d0ZtNzZ6bXBEWW11TTNyeEs5R2ZlbTFaV0djeldRNUhHRlQyZkxHaFlJbTNaZk83MEVkbnZuenZEVHozTDd3MnBuaGlvbnBwOUV1c0lKRm1zdEFvTkpZMnhLeEg3RWdqQ0c2NktBa2pIaURqdmZmeW5ueW1OcWg4bWF4SEUzcEE="
 
 ---
 # Source: airflow/templates/configmaps/configmap.yaml
@@ -882,7 +882,7 @@ spec:
         checksum/airflow-config: d734de4f6f4d0400d822cc9db1820f9ea979be91e07f427398ad0ae3117a934d
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: 4586d7f7ac0cf78454db09e4edcec8a958a02240547ec574ec7688278bd412a0
+        checksum/jwt-secret: 016edbb70a126ff093a62006ab0a8af3c9b843c16d7d66553b1baaec2a3c23d4
     spec:
       serviceAccountName: "airflow-api-server"
       
@@ -1367,7 +1367,7 @@ spec:
         checksum/airflow-config: d734de4f6f4d0400d822cc9db1820f9ea979be91e07f427398ad0ae3117a934d
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: 88283917ccb8332d939eb3391d76b9e01fea069d16b36907e0d9b622ddd012b9
+        checksum/jwt-secret: 3b2385684e6a4df4584c53f27d8378e36eb395fd2e8aefbc5ba4a0d5c65ebc28
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       nodeSelector:
@@ -2770,5 +2770,5 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "YjFsbVlqTktja2w0YWt0QlVIUnVNMHM1TW5kaWNsaHBUa3hXU2sweWNFZz0="
+  fernet-key: "UWtwVWIxSTBTbkZOZG1sSVkxcE5UM0kyVldOT1ZUSldha3RLYUZWSmEyST0="
 

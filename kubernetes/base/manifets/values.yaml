@@ -9,7 +9,7 @@ dagInitContainerImage:
   tag: init-local-ltshb-5e46c7c
   pullPolicy: IfNotPresent
 
-airflowServiceAccountRoleArn: &airflowServiceAccountRoleArn arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
+airflowServiceAccountRoleArn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
 
 # Base on https://airflow.apache.org/docs/helm-chart/stable/index.html#installing-the-helm-chart-with-argo-cd-flux-rancher-or-terraform
 createUserJob:
@@ -17,7 +17,7 @@ createUserJob:
   applyCustomEnv: false
   serviceAccount:
     annotations:
-      eks.amazonaws.com/role-arn: *airflowServiceAccountRoleArn
+      eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
 
 migrateDatabaseJob:
   useHelmHooks: false
@@ -27,7 +27,7 @@ migrateDatabaseJob:
     "argocd.argoproj.io/hook": Sync
   serviceAccount:
     annotations:
-      eks.amazonaws.com/role-arn: *airflowServiceAccountRoleArn
+      eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
 
 # recommendation from the doc
 useStandardNaming: true
@@ -66,22 +66,22 @@ volumeMounts:
 apiServer:
   serviceAccount:
     annotations:
-      eks.amazonaws.com/role-arn: *airflowServiceAccountRoleArn
+      eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
 
 scheduler:
   serviceAccount:
     annotations:
-      eks.amazonaws.com/role-arn: *airflowServiceAccountRoleArn
+      eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
 
 webserver:
   serviceAccount:
     annotations:
-      eks.amazonaws.com/role-arn: *airflowServiceAccountRoleArn
+      eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
 
 triggerer:
   serviceAccount:
     annotations:
-      eks.amazonaws.com/role-arn: *airflowServiceAccountRoleArn
+      eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
   env:
     - name: PYTHONPATH
       value: /opt/airflow/dags/local-airflow-dag-init-container/python
@@ -108,7 +108,7 @@ triggerer:
 dagProcessor:
   serviceAccount:
     annotations:
-      eks.amazonaws.com/role-arn: *airflowServiceAccountRoleArn
+      eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
   env:
     - name: PYTHONPATH
       value: /opt/airflow/dags/local-airflow-dag-init-container/python
@@ -135,7 +135,7 @@ dagProcessor:
 cleanup:
   serviceAccount:
     annotations:
-      eks.amazonaws.com/role-arn: *airflowServiceAccountRoleArn
+      eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
 
 
 # worker configurations
@@ -144,7 +144,7 @@ workers:
     serviceAccount:
       create: true
       annotations:
-        eks.amazonaws.com/role-arn: *airflowServiceAccountRoleArn
+        eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
     env:
       - name: PYTHONPATH
         value: /opt/airflow/dags/local-airflow-dag-init-container/python
