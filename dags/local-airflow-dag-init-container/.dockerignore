@@ -2,3 +2,5 @@
 !dags/
 !dags/**
 !deploy-dags.sh
+!pyproject.toml
+!uv.lock

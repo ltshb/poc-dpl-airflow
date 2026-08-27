@@ -1,9 +1,11 @@
 [project]
-name = "local-airflow-dag-sidecar"
+name = "local-airflow-dag-init-container"
 version = "0.1.0"
 description = "Example Airflow DAG deployed by an init container."
 requires-python = ">=3.12,<3.13"
-dependencies = []
+dependencies = [
+    "python-dateutil==2.9.0.post0",
+]
 
 [dependency-groups]
 dev = [

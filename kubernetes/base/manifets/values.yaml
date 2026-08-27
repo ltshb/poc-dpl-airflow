@@ -4,6 +4,11 @@ fullnameOverride: airflow
 defaultAirflowRepository: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags
 defaultAirflowTag: local-ltshb-b8c5159
 
+dagInitContainerImage:
+  repository: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only
+  tag: init-local-ltshb-8b81c74
+  pullPolicy: IfNotPresent
+
 # Base on https://airflow.apache.org/docs/helm-chart/stable/index.html#installing-the-helm-chart-with-argo-cd-flux-rancher-or-terraform
 createUserJob:
   useHelmHooks: false
@@ -75,6 +80,9 @@ triggerer:
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
+  env:
+    - name: PYTHONPATH
+      value: /opt/airflow/dags/local-airflow-dag-init-container/python
   extraVolumes:
     - name: dags
       emptyDir: {}
@@ -83,9 +91,9 @@ triggerer:
       mountPath: /opt/airflow/dags
       readOnly: true
   extraInitContainers:
-    - name: dag-sidecar-init
-      image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:sidecar-local-ltshb-915dcc2
-      imagePullPolicy: IfNotPresent
+    - name: dag-init
+      image: "{{ .Values.dagInitContainerImage.repository }}:{{ .Values.dagInitContainerImage.tag }}"
+      imagePullPolicy: "{{ .Values.dagInitContainerImage.pullPolicy }}"
       securityContext:
         allowPrivilegeEscalation: false
         capabilities:
@@ -99,6 +107,9 @@ dagProcessor:
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
+  env:
+    - name: PYTHONPATH
+      value: /opt/airflow/dags/local-airflow-dag-init-container/python
   extraVolumes:
     - name: dags
       emptyDir: {}
@@ -107,9 +118,9 @@ dagProcessor:
       mountPath: /opt/airflow/dags
       readOnly: true
   extraInitContainers:
-    - name: dag-sidecar-init
-      image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:sidecar-local-ltshb-915dcc2
-      imagePullPolicy: IfNotPresent
+    - name: dag-init
+      image: "{{ .Values.dagInitContainerImage.repository }}:{{ .Values.dagInitContainerImage.tag }}"
+      imagePullPolicy: "{{ .Values.dagInitContainerImage.pullPolicy }}"
       securityContext:
         allowPrivilegeEscalation: false
         capabilities:
@@ -132,6 +143,9 @@ workers:
       create: true
       annotations:
         eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
+    env:
+      - name: PYTHONPATH
+        value: /opt/airflow/dags/local-airflow-dag-init-container/python
     extraVolumes:
       - name: dags
         emptyDir: {}
@@ -141,9 +155,9 @@ workers:
         readOnly: true
     # Populate the pod-local DAG volume once before the worker starts.
     extraInitContainers:
-      - name: dag-sidecar-init
-        image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:sidecar-local-ltshb-915dcc2
-        imagePullPolicy: IfNotPresent
+      - name: dag-init
+        image: "{{ .Values.dagInitContainerImage.repository }}:{{ .Values.dagInitContainerImage.tag }}"
+        imagePullPolicy: "{{ .Values.dagInitContainerImage.pullPolicy }}"
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

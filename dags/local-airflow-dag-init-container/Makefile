@@ -7,7 +7,7 @@ SERVICE_NAME := airflow-dags-only
 GIT_HASH_SHORT := $(shell git rev-parse --short HEAD)
 DOCKER_REGISTRY := 025064823138.dkr.ecr.eu-central-1.amazonaws.com
 ECR_REPOSITORY := poc-datapipeline/$(SERVICE_NAME)
-DOCKER_IMG_LOCAL_TAG := $(DOCKER_REGISTRY)/$(ECR_REPOSITORY):sidecar-local-$(USER)-$(GIT_HASH_SHORT)
+DOCKER_IMG_LOCAL_TAG := $(DOCKER_REGISTRY)/$(ECR_REPOSITORY):init-local-$(USER)-$(GIT_HASH_SHORT)
 AWS_REGION := eu-central-1
 AWS_PROFILE := swisstopo-swissgeo-poc-datapipeline
 

@@ -182,7 +182,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  api-secret-key: "bDBJVE9CSVNBak4xVU9YWEtNSzQxM2cyQXRxSm8xY2E="
+  api-secret-key: "eEJ2WGFDRE5KU2hDMlBKUzdVRWo4R1lJWTlydjRwZlY="
 
 ---
 # Source: airflow/templates/secrets/jwt-secret.yaml
@@ -201,7 +201,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  jwt-secret: "TkllTmdreWRXenZKSnVlbElWbFFYV05vVEpnTGdNU01kWlNDNDk5dHB6bTI1dENFWlZjaFBvbW1KSHNhZjI1dUhMYzNkYW9nQlBJMk9TMVhKVzBIUFR1empYRjBKVFU3TmI5S09BZ3Y2T0x3VG1YcGJ6eDhnd0hsVWZTakxmUFQ="
+  jwt-secret: "QkJKbGlHQ29Fc0FWM01XaFllZ0RTQ0xYMXRxNk5mcjBKODJlcUZWREhTcWprN2xLeUhWaVkyMHlzdWx4TnVZSUt1UGY0cm84emZUa0M3RUQ5MTlJeG1pY0ttNG5qcEVRdWJiVGNFdE0zUEh4MHhPMzRNUE1adTJQc3NJV21yaTQ="
 
 ---
 # Source: airflow/templates/configmaps/configmap.yaml
@@ -309,9 +309,9 @@ data:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
     spec:
       initContainers:
-        - image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:sidecar-local-ltshb-915dcc2
-          imagePullPolicy: IfNotPresent
-          name: dag-sidecar-init
+        - image: '025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:init-local-ltshb-8b81c74'
+          imagePullPolicy: 'IfNotPresent'
+          name: dag-init
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -353,6 +353,8 @@ data:
             # Dynamically created environment variables
             # Dynamically created secret envs
             # Extra env      
+            - name: PYTHONPATH
+              value: "/opt/airflow/dags/local-airflow-dag-init-container/python"
           image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-b8c5159
           imagePullPolicy: IfNotPresent
           securityContext: 
@@ -877,10 +879,10 @@ spec:
       annotations:
         checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: d6286938da61670a656ec4e37e1404243119b0fa892ea7f8b74a5c8e21d5bfcd
+        checksum/airflow-config: dc2a530bdf3e15cac9aeabf92d00365c54f74ead89a4f6834e322c8db8c86f2c
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: 5e00b782e63ff7f9bf46534ad85719746d0c343ebddf362edce0a950b43f278b
+        checksum/jwt-secret: 27dadf0a43de3c8ba80c81498c051c768e43047b460257ddb990eaafde6a64d6
     spec:
       serviceAccountName: "airflow-api-server"
       
@@ -1101,7 +1103,7 @@ spec:
       annotations:
         checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: d6286938da61670a656ec4e37e1404243119b0fa892ea7f8b74a5c8e21d5bfcd
+        checksum/airflow-config: dc2a530bdf3e15cac9aeabf92d00365c54f74ead89a4f6834e322c8db8c86f2c
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1191,9 +1193,9 @@ spec:
                 secretKeyRef:
                   name: airflow-api-secret-key
                   key: api-secret-key
-        - image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:sidecar-local-ltshb-915dcc2
-          imagePullPolicy: IfNotPresent
-          name: dag-sidecar-init
+        - image: '025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:init-local-ltshb-8b81c74'
+          imagePullPolicy: 'IfNotPresent'
+          name: dag-init
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -1264,6 +1266,8 @@ spec:
                 secretKeyRef:
                   name: airflow-api-secret-key
                   key: api-secret-key          
+            - name: PYTHONPATH
+              value: "/opt/airflow/dags/local-airflow-dag-init-container/python"
           livenessProbe:
             initialDelaySeconds: 10
             timeoutSeconds: 20
@@ -1360,10 +1364,10 @@ spec:
         checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/result-backend-secret: 98a68f230007cfa8f5d3792e1aff843a76b0686409e4a46ab2f092f6865a1b71
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: d6286938da61670a656ec4e37e1404243119b0fa892ea7f8b74a5c8e21d5bfcd
+        checksum/airflow-config: dc2a530bdf3e15cac9aeabf92d00365c54f74ead89a4f6834e322c8db8c86f2c
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: f122fe3a9d80bd7f1874636a2e2c068bd1d6c4df9bfc340e054b57e579eac804
+        checksum/jwt-secret: 72b50421550aedb2c44b15f7ea759521a07e37ce5c0e56157fa04a53422edebc
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       nodeSelector:
@@ -1706,7 +1710,7 @@ spec:
       annotations:
         checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: d6286938da61670a656ec4e37e1404243119b0fa892ea7f8b74a5c8e21d5bfcd
+        checksum/airflow-config: dc2a530bdf3e15cac9aeabf92d00365c54f74ead89a4f6834e322c8db8c86f2c
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1798,9 +1802,9 @@ spec:
                 secretKeyRef:
                   name: airflow-api-secret-key
                   key: api-secret-key
-        - image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:sidecar-local-ltshb-915dcc2
-          imagePullPolicy: IfNotPresent
-          name: dag-sidecar-init
+        - image: '025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:init-local-ltshb-8b81c74'
+          imagePullPolicy: 'IfNotPresent'
+          name: dag-init
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -1872,6 +1876,8 @@ spec:
                   name: airflow-api-secret-key
                   key: api-secret-key
           
+            - name: PYTHONPATH
+              value: "/opt/airflow/dags/local-airflow-dag-init-container/python"
           livenessProbe:
             initialDelaySeconds: 10
             timeoutSeconds: 20
@@ -2751,7 +2757,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "VkV4WVZrWlBlak5rVXpkVVdVVlpXVFpFYjFrNE0wRk1PRlpFUldwSGQyUT0="
+  fernet-key: "TlhSUldGVkdabXgzZGpabVFWcEpPRFk1U0ZCRWRXSjZURVYxYm5SeWNXZz0="
 
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
@@ -2782,7 +2788,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  password: "NVFTdHpGMVNSUA=="
+  password: "SllRclVwQWtlUQ=="
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
 ##################################
@@ -2804,5 +2810,5 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  connection: "cmVkaXM6Ly86NVFTdHpGMVNSUEBhaXJmbG93LXJlZGlzOjYzNzkvMA=="
+  connection: "cmVkaXM6Ly86SllRclVwQWtlUUBhaXJmbG93LXJlZGlzOjYzNzkvMA=="
 
