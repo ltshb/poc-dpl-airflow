@@ -181,10 +181,18 @@ data:
   metadataConnection:
     db: airflow-db
   metadataSecretName: airflow-db-secret # secret is synchronized by aws-secrets-airflow
+  # Prevent the chart from defensively generating a broker URL Secret. It is
+  # not used by the KubernetesExecutor.
+  brokerUrlSecretName: airflow-broker-url
+
+# Redis is only required by Celery-based executors.
+redis:
+  enabled: false
 
 databaseCleanup:
   enabled: true
   retentionDays: 90
 
-# pgbouncer:
-#   enabled: true
+# NOTE: required for production !
+pgbouncer:
+  enabled: false

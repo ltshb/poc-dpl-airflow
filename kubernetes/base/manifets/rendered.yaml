@@ -182,7 +182,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  api-secret-key: "d1VUV0FzQ2JiTEZaR3F5Skw2SjBlUFJNSXlUZG0ybjc="
+  api-secret-key: "dU5lRTE4eVhON2dESlQ4T2VNTkFZbWZ2Z0U5QjU4NTA="
 
 ---
 # Source: airflow/templates/secrets/jwt-secret.yaml
@@ -201,7 +201,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  jwt-secret: "STZXZFdYb3doQUZDZXo1eEY3MjAzZVlpenVEYjdDQTEzeWpjbGZHNmxRUnRydE1YVndsSXUzVUx4OGdDVDAzM2xZbmU3Rm5vTURsT2Zsc2JJWDdJNE1vdjJsTUdYNkQ4bURZZFU3UGtOSllhSnZtSTNOWldaZUlJSTgzZm4xZjI="
+  jwt-secret: "dnpkV011WGtYMWk2a0JUVndUVUtFbUNPVWZVQlFsQWt4U0xpOTRSbU14V2xIZWZDbXJVVHBFM2k0UVVqTDNOek0ySFc5c0taMW4wRzU2UzJseXhJaDd6VUNydjh0MW84M0tVUWIwT1FCR0FMT2J5dnFkSGZxRzk2MDhVZ0Q0Qlo="
 
 ---
 # Source: airflow/templates/configmaps/configmap.yaml
@@ -882,7 +882,7 @@ spec:
         checksum/airflow-config: d734de4f6f4d0400d822cc9db1820f9ea979be91e07f427398ad0ae3117a934d
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: 25e45614b14df66a12526657aefc75becebc0eca2119886eee2736fc230a9f35
+        checksum/jwt-secret: 4586d7f7ac0cf78454db09e4edcec8a958a02240547ec574ec7688278bd412a0
     spec:
       serviceAccountName: "airflow-api-server"
       
@@ -1367,7 +1367,7 @@ spec:
         checksum/airflow-config: d734de4f6f4d0400d822cc9db1820f9ea979be91e07f427398ad0ae3117a934d
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: 823aad53c213137d43e955226291f1cfedecac04278a5c8e58cd377d266af069
+        checksum/jwt-secret: 88283917ccb8332d939eb3391d76b9e01fea069d16b36907e0d9b622ddd012b9
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       nodeSelector:
@@ -2606,6 +2606,19 @@ spec:
 #################################
 
 ---
+# Source: airflow/templates/secrets/redis-secrets.yaml
+# We will create these secrets (if necessary) _even if_ we aren't
+# currently using CeleryExecutor or CeleryKubernetesExecutor. As we are
+# relying on the "pre-install" hack to prevent changing randomly generated passwords,
+# updating the executor later doesn't give us the opportunity to deploy them
+# when we need them. We will always deploy them defensively to make the executor
+# update path actually work.
+
+################################
+## Airflow Redis Password Secret
+#################################
+
+---
 # Source: airflow/templates/secrets/registry-secret.yaml
 ################################
 ## Registry Secret
@@ -2757,58 +2770,5 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "VEVkRmNYRlBPVGxNTm0xemN6Qk9kWEI1T1hGelNGRjJkMDFFVERSdlpHST0="
-
----
-# Source: airflow/templates/secrets/redis-secrets.yaml
-# We will create these secrets (if necessary) _even if_ we aren't
-# currently using CeleryExecutor or CeleryKubernetesExecutor. As we are
-# relying on the "pre-install" hack to prevent changing randomly generated passwords,
-# updating the executor later doesn't give us the opportunity to deploy them
-# when we need them. We will always deploy them defensively to make the executor
-# update path actually work.
-
-################################
-## Airflow Redis Password Secret
-#################################
-# If passwordSecretName is not set, we will either use the set password, or use the generated one
-apiVersion: v1
-kind: Secret
-metadata:
-  name: airflow-redis-password
-  labels:
-    tier: airflow
-    component: redis
-    release: release-name
-    chart: "airflow-1.22.0"
-    heritage: Helm
-  annotations:
-    "helm.sh/hook": "pre-install"
-    "helm.sh/hook-delete-policy": "before-hook-creation"
-    "helm.sh/hook-weight": "0"
-type: Opaque
-data:
-  password: "cGtVN2xHQ0tlZQ=="
----
-# Source: airflow/templates/secrets/redis-secrets.yaml
-##################################
-## Airflow Redis Connection Secret
-##################################
-apiVersion: v1
-kind: Secret
-metadata:
-  name: airflow-broker-url
-  labels:
-    tier: airflow
-    component: redis
-    release: release-name
-    chart: airflow
-    heritage: Helm
-  annotations:
-    "helm.sh/hook": "pre-install"
-    "helm.sh/hook-delete-policy": "before-hook-creation"
-    "helm.sh/hook-weight": "0"
-type: Opaque
-data:
-  connection: "cmVkaXM6Ly86cGtVN2xHQ0tlZUBhaXJmbG93LXJlZGlzOjYzNzkvMA=="
+  fernet-key: "YjFsbVlqTktja2w0YWt0QlVIUnVNMHM1TW5kaWNsaHBUa3hXU2sweWNFZz0="
 
