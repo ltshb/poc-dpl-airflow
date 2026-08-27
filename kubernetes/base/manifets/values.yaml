@@ -19,6 +19,14 @@ airflowServiceAccountRoleArn: arn:aws:iam::025064823138:role/k8s-service-account
 createUserJob:
   useHelmHooks: false
   applyCustomEnv: false
+  defaultUser:
+    password: "$(AIRFLOW_ADMIN_PASSWORD)"
+  env:
+    - name: AIRFLOW_ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: airflow-admin-password
+          key: password
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"

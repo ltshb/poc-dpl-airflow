@@ -98,6 +98,48 @@ data:
 EOF
 ```
 
+### Airflow default user password
+
+Generate a strong password for the default Airflow user and create or update
+the Kubernetes Secret:
+
+```bash
+_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(8))')
+kubectl apply --namespace airflow -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: airflow-admin-password
+  labels:
+    tier: airflow
+    component: create-user-job
+type: Opaque
+stringData:
+  password: "${_KEY}"
+EOF
+```
+
+The Secret is used when the default user is created. Updating it does not
+change the password of a user that already exists in the Airflow database.
+To update the existing `admin` user, read the password from the Secret and
+reset it in Airflow:
+
+```bash
+_KEY="$(kubectl get secret airflow-admin-password \
+  --namespace airflow \
+  --output jsonpath='{.data.password}' | base64 --decode)"
+
+kubectl exec \
+  --namespace airflow \
+  deployment/airflow-api-server \
+  --container api-server \
+  -- airflow users reset-password \
+  --username admin \
+  --password "${_KEY}"
+
+unset _KEY
+```
+
 ## TODO
 
 - [ ] Setup Secrets see https://airflow.apache.org/docs/helm-chart/stable/production-guide.html#api-secret-key

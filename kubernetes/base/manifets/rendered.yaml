@@ -1985,7 +1985,7 @@ spec:
             - -l
             - 'user'
             - -p
-            - 'admin'
+            - '$(AIRFLOW_ADMIN_PASSWORD)'
           env:          
             # Hard Coded Airflow Envs
             - name: AIRFLOW_HOME
@@ -2010,6 +2010,11 @@ spec:
                 secretKeyRef:
                   name: airflow-api-secret-key
                   key: api-secret-key          
+            - name: AIRFLOW_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-admin-password
+                  key: password
           resources:
             {}
           volumeMounts:
