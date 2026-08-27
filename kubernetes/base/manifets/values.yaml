@@ -6,7 +6,7 @@ defaultAirflowTag: local-ltshb-b8c5159
 
 dagInitContainerImage:
   repository: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only
-  tag: init-local-ltshb-8b81c74
+  tag: init-local-ltshb-5e46c7c
   pullPolicy: IfNotPresent
 
 # Base on https://airflow.apache.org/docs/helm-chart/stable/index.html#installing-the-helm-chart-with-argo-cd-flux-rancher-or-terraform
