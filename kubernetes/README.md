@@ -26,6 +26,29 @@ psql -h localhost -p 5432 -U postgres
 CREATE DATABASE "airflow-db";
 ```
 
+## Secrets
+
+Generate a strong Airflow API server secret key and create or update the
+Kubernetes Secret:
+
+```bash
+kubectl apply --namespace airflow -f - <<EOF
+############################################
+## Airflow Api Flask Secret Key Secret
+############################################
+apiVersion: v1
+kind: Secret
+metadata:
+  name: airflow-api-secret-key
+  labels:
+    tier: airflow
+    component: api-server
+type: Opaque
+data:
+  api-secret-key: $(printf '%s' "$(python3 -c 'import secrets; print(secrets.token_hex(16))')" | base64)
+EOF
+```
+
 ## TODO
 
 - [ ] Setup Secrets see https://airflow.apache.org/docs/helm-chart/stable/production-guide.html#api-secret-key

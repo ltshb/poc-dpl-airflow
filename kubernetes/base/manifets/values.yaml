@@ -4,6 +4,8 @@ fullnameOverride: airflow
 defaultAirflowRepository: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags
 defaultAirflowTag: local-ltshb-b8c5159
 
+apiSecretKeySecretName: airflow-api-secret-key
+
 dagInitContainerImage:
   repository: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only
   tag: init-local-ltshb-5e46c7c
@@ -64,11 +66,15 @@ volumeMounts:
     readOnly: true
 
 apiServer:
+  annotations:
+    reloader.stakater.com/auto: "true"
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
 
 scheduler:
+  annotations:
+    reloader.stakater.com/auto: "true"
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
@@ -79,6 +85,8 @@ webserver:
       eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
 
 triggerer:
+  annotations:
+    reloader.stakater.com/auto: "true"
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
@@ -106,6 +114,8 @@ triggerer:
           mountPath: /opt/airflow/dags
 
 dagProcessor:
+  annotations:
+    reloader.stakater.com/auto: "true"
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
@@ -189,9 +199,15 @@ data:
 redis:
   enabled: false
 
+statsd:
+  annotations:
+    reloader.stakater.com/auto: "true"
+
 databaseCleanup:
   enabled: true
   retentionDays: 90
+  jobAnnotations:
+    reloader.stakater.com/auto: "true"
 
 # NOTE: required for production !
 pgbouncer:

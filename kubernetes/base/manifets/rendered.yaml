@@ -166,25 +166,6 @@ metadata:
     eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
 
 ---
-# Source: airflow/templates/secrets/api-secret-key-secret.yaml
-############################################
-## Airflow Api Flask Secret Key Secret
-############################################
-apiVersion: v1
-kind: Secret
-metadata:
-  name: airflow-api-secret-key
-  labels:
-    tier: airflow
-    component: api-server
-    release: release-name
-    chart: "airflow-1.22.0"
-    heritage: Helm
-type: Opaque
-data:
-  api-secret-key: "Mjk3QUpjYlFsc3ROa0FnWkVOcjNDRTVQcURmS09CRVQ="
-
----
 # Source: airflow/templates/secrets/jwt-secret.yaml
 ############################################
 ## Airflow JWT Secret
@@ -201,7 +182,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  jwt-secret: "d0ZtNzZ6bXBEWW11TTNyeEs5R2ZlbTFaV0djeldRNUhHRlQyZkxHaFlJbTNaZk83MEVkbnZuenZEVHozTDd3MnBuaGlvbnBwOUV1c0lKRm1zdEFvTkpZMnhLeEg3RWdqQ0c2NktBa2pIaURqdmZmeW5ueW1OcWg4bWF4SEUzcEE="
+  jwt-secret: "c3JCZjRhT2pYRmF0ajA2ODl0VUQyYzZlRW01QkMwa1Jja2dQVmlwcVRLY2IxbzFWWWUwOVc0VDlBZFlFenFjOTgzcFNhTXdlZTZVTEhRdGlZVWVRZkZzZjg1TUlEdVlET2Y2TTRRUWhhYk1GMk5UWkxPWXRFam9xdVloeE9NR1I="
 
 ---
 # Source: airflow/templates/configmaps/configmap.yaml
@@ -851,6 +832,8 @@ metadata:
     release: release-name
     chart: "airflow-1.22.0"
     heritage: Helm
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: 1
   strategy:
@@ -882,7 +865,7 @@ spec:
         checksum/airflow-config: d734de4f6f4d0400d822cc9db1820f9ea979be91e07f427398ad0ae3117a934d
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: 016edbb70a126ff093a62006ab0a8af3c9b843c16d7d66553b1baaec2a3c23d4
+        checksum/jwt-secret: 9b90184616f13cb45414824b067586e6014b6be64d823654482ea6139fa67481
     spec:
       serviceAccountName: "airflow-api-server"
       
@@ -1083,6 +1066,8 @@ metadata:
     release: release-name
     chart: "airflow-1.22.0"
     heritage: Helm
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: 1
   selector:
@@ -1347,6 +1332,8 @@ metadata:
     chart: "airflow-1.22.0"
     heritage: Helm
     executor: "KubernetesExecutor"
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: 1
   selector:
@@ -1367,7 +1354,7 @@ spec:
         checksum/airflow-config: d734de4f6f4d0400d822cc9db1820f9ea979be91e07f427398ad0ae3117a934d
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: 3b2385684e6a4df4584c53f27d8378e36eb395fd2e8aefbc5ba4a0d5c65ebc28
+        checksum/jwt-secret: b3436f38312b08dfcebe13fefa8bed5f6ae5edb9f822182595207ef8ab65327d
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       nodeSelector:
@@ -1604,6 +1591,8 @@ metadata:
     release: release-name
     chart: "airflow-1.22.0"
     heritage: Helm
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: 1
   selector:
@@ -1693,6 +1682,8 @@ metadata:
     release: release-name
     chart: "airflow-1.22.0"
     heritage: Helm
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   serviceName: airflow-triggerer
   replicas: 1
@@ -2189,6 +2180,8 @@ metadata:
     release: release-name
     chart: "airflow-1.22.0"
     heritage: Helm
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   schedule: "0 0 * * 0"
   # The cron job does not allow concurrent runs; if it is time for a new job run and the previous job run hasn't finished yet, the cron job skips the new job run
@@ -2552,6 +2545,12 @@ spec:
 #################################
 
 ---
+# Source: airflow/templates/secrets/api-secret-key-secret.yaml
+############################################
+## Airflow Api Flask Secret Key Secret
+############################################
+
+---
 # Source: airflow/templates/secrets/elasticsearch-secret.yaml
 ################################
 ## Elasticsearch Secret
@@ -2770,5 +2769,5 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "UWtwVWIxSTBTbkZOZG1sSVkxcE5UM0kyVldOT1ZUSldha3RLYUZWSmEyST0="
+  fernet-key: "TURJeFFXaEdPV2N5YTFCS1dXSjBPR3hNY1d0MlVuVk9WWGxqYTFwbWN6RT0="
 
