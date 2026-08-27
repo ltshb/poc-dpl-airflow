@@ -182,7 +182,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  api-secret-key: "azdQOFYzYk15ajlWS1R6dmM3TlJmQ0N4bEQzMlNJZno="
+  api-secret-key: "bDBJVE9CSVNBak4xVU9YWEtNSzQxM2cyQXRxSm8xY2E="
 
 ---
 # Source: airflow/templates/secrets/jwt-secret.yaml
@@ -201,7 +201,7 @@ metadata:
     heritage: Helm
 type: Opaque
 data:
-  jwt-secret: "WjFBNGg4ZzlWbGhDQktmVlVBU29KZVg5aHpLZzlyVUgzT0tzeFdhYzVPVHlqZzd1cFpXeUFNU2UwSVdmelpOMUlweWV5bFFoRHFEc2dBamZQRFBjOXB3UjIwbGR6OXlhbm1VZGFRcTdTYmpQYVZFbUpSZG5GWjkwS3U0VGU4dnE="
+  jwt-secret: "TkllTmdreWRXenZKSnVlbElWbFFYV05vVEpnTGdNU01kWlNDNDk5dHB6bTI1dENFWlZjaFBvbW1KSHNhZjI1dUhMYzNkYW9nQlBJMk9TMVhKVzBIUFR1empYRjBKVFU3TmI5S09BZ3Y2T0x3VG1YcGJ6eDhnd0hsVWZTakxmUFQ="
 
 ---
 # Source: airflow/templates/configmaps/configmap.yaml
@@ -309,6 +309,18 @@ data:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
     spec:
       initContainers:
+        - image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:sidecar-local-ltshb-915dcc2
+          imagePullPolicy: IfNotPresent
+          name: dag-sidecar-init
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          volumeMounts:
+          - mountPath: /opt/airflow/dags
+            name: dags
       containers:
         - envFrom:      
             []
@@ -365,6 +377,9 @@ data:
             - mountPath: /mnt/secrets-store/aws-secrets-airflow
               name: aws-secrets-airflow
               readOnly: true
+            - mountPath: /opt/airflow/dags
+              name: dags
+              readOnly: true
       imagePullSecrets:
         []
       restartPolicy: Never
@@ -396,6 +411,8 @@ data:
           volumeAttributes:
             secretProviderClass: aws-secrets-airflow
         name: aws-secrets-airflow
+      - emptyDir: {}
+        name: dags
     
 
 ---
@@ -860,10 +877,10 @@ spec:
       annotations:
         checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: 4fc70edaf1a0c29cff3da19a6acd36d90caeb24a5627b001b5cbef17df2bdcb2
+        checksum/airflow-config: d6286938da61670a656ec4e37e1404243119b0fa892ea7f8b74a5c8e21d5bfcd
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: 8aa85794b4e4983aafb54b7f8c39c6936f25d714fc4a120ef9dbdea9c92636f9
+        checksum/jwt-secret: 5e00b782e63ff7f9bf46534ad85719746d0c343ebddf362edce0a950b43f278b
     spec:
       serviceAccountName: "airflow-api-server"
       
@@ -1084,7 +1101,7 @@ spec:
       annotations:
         checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: 4fc70edaf1a0c29cff3da19a6acd36d90caeb24a5627b001b5cbef17df2bdcb2
+        checksum/airflow-config: d6286938da61670a656ec4e37e1404243119b0fa892ea7f8b74a5c8e21d5bfcd
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1129,6 +1146,9 @@ spec:
             - mountPath: /mnt/secrets-store/aws-secrets-airflow
               name: aws-secrets-airflow
               readOnly: true
+            - mountPath: /opt/airflow/dags
+              name: dags
+              readOnly: true
             - name: config
               mountPath: "/opt/airflow/airflow.cfg"
               subPath: airflow.cfg
@@ -1171,6 +1191,18 @@ spec:
                 secretKeyRef:
                   name: airflow-api-secret-key
                   key: api-secret-key
+        - image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:sidecar-local-ltshb-915dcc2
+          imagePullPolicy: IfNotPresent
+          name: dag-sidecar-init
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          volumeMounts:
+          - mountPath: /opt/airflow/dags
+            name: dags
       containers:
         - name: dag-processor
           image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-b8c5159
@@ -1189,6 +1221,9 @@ spec:
           volumeMounts:
             - mountPath: /mnt/secrets-store/aws-secrets-airflow
               name: aws-secrets-airflow
+              readOnly: true
+            - mountPath: /opt/airflow/dags
+              name: dags
               readOnly: true
             - name: logs
               mountPath: "/opt/airflow/logs"
@@ -1269,6 +1304,9 @@ spec:
             - mountPath: /mnt/secrets-store/aws-secrets-airflow
               name: aws-secrets-airflow
               readOnly: true
+            - mountPath: /opt/airflow/dags
+              name: dags
+              readOnly: true
       volumes:
         - name: config
           configMap:
@@ -1279,6 +1317,8 @@ spec:
             volumeAttributes:
               secretProviderClass: aws-secrets-airflow
           name: aws-secrets-airflow
+        - emptyDir: {}
+          name: dags
         - name: logs
           emptyDir:
             {}
@@ -1320,10 +1360,10 @@ spec:
         checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/result-backend-secret: 98a68f230007cfa8f5d3792e1aff843a76b0686409e4a46ab2f092f6865a1b71
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: 4fc70edaf1a0c29cff3da19a6acd36d90caeb24a5627b001b5cbef17df2bdcb2
+        checksum/airflow-config: d6286938da61670a656ec4e37e1404243119b0fa892ea7f8b74a5c8e21d5bfcd
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
-        checksum/jwt-secret: 00cef5561060b5dbbec518c9c6d3ceafe32130e3c5f87672ab452fe2a4da8b9a
+        checksum/jwt-secret: f122fe3a9d80bd7f1874636a2e2c068bd1d6c4df9bfc340e054b57e579eac804
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       nodeSelector:
@@ -1666,7 +1706,7 @@ spec:
       annotations:
         checksum/metadata-secret: b2fe937560e9635aeb01fce9100c2f836c5880f81c802565ce95fbcc8a56da4c
         checksum/pgbouncer-config-secret: 1dae2adc757473469686d37449d076b0c82404f61413b58ae68b3c5e99527688
-        checksum/airflow-config: 4fc70edaf1a0c29cff3da19a6acd36d90caeb24a5627b001b5cbef17df2bdcb2
+        checksum/airflow-config: d6286938da61670a656ec4e37e1404243119b0fa892ea7f8b74a5c8e21d5bfcd
         checksum/extra-configmaps: e862ea47e13e634cf17d476323784fa27dac20015550c230953b526182f5cac8
         checksum/extra-secrets: e9582fdd622296c976cbc10a5ba7d6702c28a24fe80795ea5b84ba443a56c827
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
@@ -1721,6 +1761,9 @@ spec:
             - mountPath: /mnt/secrets-store/aws-secrets-airflow
               name: aws-secrets-airflow
               readOnly: true
+            - mountPath: /opt/airflow/dags
+              name: dags
+              readOnly: true
           args:          
             - airflow
             - db
@@ -1755,6 +1798,18 @@ spec:
                 secretKeyRef:
                   name: airflow-api-secret-key
                   key: api-secret-key
+        - image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:sidecar-local-ltshb-915dcc2
+          imagePullPolicy: IfNotPresent
+          name: dag-sidecar-init
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          volumeMounts:
+          - mountPath: /opt/airflow/dags
+            name: dags
       containers:
         - name: triggerer
           image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags:local-ltshb-b8c5159
@@ -1773,6 +1828,9 @@ spec:
           volumeMounts:
             - mountPath: /mnt/secrets-store/aws-secrets-airflow
               name: aws-secrets-airflow
+              readOnly: true
+            - mountPath: /opt/airflow/dags
+              name: dags
               readOnly: true
             - name: logs
               mountPath: "/opt/airflow/logs"
@@ -1857,6 +1915,9 @@ spec:
             - mountPath: /mnt/secrets-store/aws-secrets-airflow
               name: aws-secrets-airflow
               readOnly: true
+            - mountPath: /opt/airflow/dags
+              name: dags
+              readOnly: true
       volumes:
         - name: config
           configMap:
@@ -1867,6 +1928,8 @@ spec:
             volumeAttributes:
               secretProviderClass: aws-secrets-airflow
           name: aws-secrets-airflow
+        - emptyDir: {}
+          name: dags
   volumeClaimTemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim
@@ -2688,7 +2751,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  fernet-key: "YkZwdVdteHhhMU41VEZaVWNUVnFkbkZHTjNCS2NHeE5WMDgyT1c5bVduUT0="
+  fernet-key: "VkV4WVZrWlBlak5rVXpkVVdVVlpXVFpFYjFrNE0wRk1PRlpFUldwSGQyUT0="
 
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
@@ -2719,7 +2782,7 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  password: "THl4VzVOeG10Ug=="
+  password: "NVFTdHpGMVNSUA=="
 ---
 # Source: airflow/templates/secrets/redis-secrets.yaml
 ##################################
@@ -2741,5 +2804,5 @@ metadata:
     "helm.sh/hook-weight": "0"
 type: Opaque
 data:
-  connection: "cmVkaXM6Ly86THl4VzVOeG10UkBhaXJmbG93LXJlZGlzOjYzNzkvMA=="
+  connection: "cmVkaXM6Ly86NVFTdHpGMVNSUEBhaXJmbG93LXJlZGlzOjYzNzkvMA=="
 

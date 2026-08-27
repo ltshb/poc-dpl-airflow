@@ -75,11 +75,49 @@ triggerer:
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
+  extraVolumes:
+    - name: dags
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: dags
+      mountPath: /opt/airflow/dags
+      readOnly: true
+  extraInitContainers:
+    - name: dag-sidecar-init
+      image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:sidecar-local-ltshb-915dcc2
+      imagePullPolicy: IfNotPresent
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        readOnlyRootFilesystem: true
+      volumeMounts:
+        - name: dags
+          mountPath: /opt/airflow/dags
 
 dagProcessor:
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
+  extraVolumes:
+    - name: dags
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: dags
+      mountPath: /opt/airflow/dags
+      readOnly: true
+  extraInitContainers:
+    - name: dag-sidecar-init
+      image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:sidecar-local-ltshb-915dcc2
+      imagePullPolicy: IfNotPresent
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        readOnlyRootFilesystem: true
+      volumeMounts:
+        - name: dags
+          mountPath: /opt/airflow/dags
 
 cleanup:
   serviceAccount:
@@ -94,6 +132,26 @@ workers:
       create: true
       annotations:
         eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
+    extraVolumes:
+      - name: dags
+        emptyDir: {}
+    extraVolumeMounts:
+      - name: dags
+        mountPath: /opt/airflow/dags
+        readOnly: true
+    # Populate the pod-local DAG volume once before the worker starts.
+    extraInitContainers:
+      - name: dag-sidecar-init
+        image: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only:sidecar-local-ltshb-915dcc2
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          readOnlyRootFilesystem: true
+        volumeMounts:
+          - name: dags
+            mountPath: /opt/airflow/dags
 
 
 cleanup:

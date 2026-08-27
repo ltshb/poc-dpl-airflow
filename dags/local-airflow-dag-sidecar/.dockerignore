@@ -1,0 +1,4 @@
+*
+!dags/
+!dags/**
+!deploy-dags.sh
