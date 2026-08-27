@@ -75,6 +75,29 @@ data:
 EOF
 ```
 
+### Airflow Fernet key
+
+Generate a valid Airflow Fernet key and create or update the Kubernetes
+Secret:
+
+```bash
+_KEY=$(python3 -c 'import base64, secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())' | base64 -w 0)
+kubectl apply --namespace airflow -f - <<EOF
+############################################
+## Airflow Fernet Key Secret
+############################################
+apiVersion: v1
+kind: Secret
+metadata:
+  name: airflow-fernet-key
+  labels:
+    tier: airflow
+type: Opaque
+data:
+  fernet-key: "${_KEY}"
+EOF
+```
+
 ## TODO
 
 - [ ] Setup Secrets see https://airflow.apache.org/docs/helm-chart/stable/production-guide.html#api-secret-key

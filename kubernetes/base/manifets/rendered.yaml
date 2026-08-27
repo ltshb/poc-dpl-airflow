@@ -2542,6 +2542,12 @@ spec:
 #################################################
 
 ---
+# Source: airflow/templates/secrets/fernetkey-secret.yaml
+################################
+## Airflow Fernet Key Secret
+#################################
+
+---
 # Source: airflow/templates/secrets/flower-secret.yaml
 ################################
 ## Flower Secret
@@ -2733,26 +2739,3 @@ spec:
 ################################
 ## Airflow Worker ServiceAccount
 #################################
----
-# Source: airflow/templates/secrets/fernetkey-secret.yaml
-################################
-## Airflow Fernet Key Secret
-#################################
-# Fernet key value must be b64enc
-apiVersion: v1
-kind: Secret
-metadata:
-  name: airflow-fernet-key
-  labels:
-    tier: airflow
-    release: release-name
-    chart: "airflow-1.22.0"
-    heritage: Helm
-  annotations:
-    "helm.sh/hook": "pre-install"
-    "helm.sh/hook-delete-policy": "before-hook-creation"
-    "helm.sh/hook-weight": "0"
-type: Opaque
-data:
-  fernet-key: "YzJwWWJWTlJVa2RPUmpaaFpVdE1kVzg0Y1hBeVFqUkxSMEkwVldaUVRXND0="
-
