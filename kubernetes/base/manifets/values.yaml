@@ -223,6 +223,9 @@ databaseCleanup:
   retentionDays: 90
   jobAnnotations:
     reloader.stakater.com/auto: "true"
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
 
 # NOTE: required for production !
 pgbouncer:

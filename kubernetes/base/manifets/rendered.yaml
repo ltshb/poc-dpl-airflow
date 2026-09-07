@@ -72,6 +72,8 @@ metadata:
     release: release-name
     chart: "airflow-1.22.0"
     heritage: Helm
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
 
 ---
 # Source: airflow/templates/jobs/create-user-job-serviceaccount.yaml
