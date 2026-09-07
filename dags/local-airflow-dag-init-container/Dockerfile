@@ -1,6 +1,8 @@
 FROM apache/airflow:3.2.2 AS dependencies
 
 COPY --chown=airflow:root pyproject.toml uv.lock /opt/airflow/dag-project/
+COPY --chown=airflow:root wheels/ /opt/airflow/dag-project/wheels/
+
 WORKDIR /opt/airflow/dag-project
 RUN uv export \
         --locked \
