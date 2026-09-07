@@ -10,7 +10,7 @@ fernetKeySecretName: airflow-fernet-key
 
 dagInitContainerImage:
   repository: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only
-  tag: init-local-ltshb-0e41829
+  tag: init-local-lthee-7c0b90b
   pullPolicy: IfNotPresent
 
 airflowServiceAccountRoleArn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
@@ -49,11 +49,11 @@ executor: KubernetesExecutor
 # See https://airflow.apache.org/docs/helm-chart/stable/airflow-configuration.html#configuring-airflow
 config:
   api:
-    expose_config: 'True'
+    expose_config: "True"
     base_url: https://nlb-poc-datapipeline.poc-datapipeline.sgdi.tech/airflow
   kubernetes_executor:
-    delete_worker_pods: 'False'
-    delete_worker_pods_on_failure: 'False'
+    delete_worker_pods: "False"
+    delete_worker_pods_on_failure: "False"
 
 # do not create persistent volumes for logs
 logs:
@@ -165,7 +165,6 @@ cleanup:
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
-
 
 # worker configurations
 workers:
