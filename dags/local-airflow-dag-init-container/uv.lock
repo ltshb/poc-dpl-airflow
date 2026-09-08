@@ -1682,15 +1682,6 @@ wheels = [
 ]
 
 [[package]]
-name = "py4j"
-version = "0.10.9.9"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/38/31/0b210511177070c8d5d3059556194352e5753602fa64b85b7ab81ec1a009/py4j-0.10.9.9.tar.gz", hash = "sha256:f694cad19efa5bd1dee4f3e5270eb406613c974394035e5bfc4ec1aba870b879", size = 761089, upload-time = "2025-01-15T03:53:18.624Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/bd/db/ea0203e495be491c85af87b66e37acfd3bf756fd985f87e46fc5e3bf022c/py4j-0.10.9.9-py2.py3-none-any.whl", hash = "sha256:c7c26e4158defb37b0bb124933163641a2ff6e3a3913f7811b0ddbe07ed61533", size = 203008, upload-time = "2025-01-15T03:53:15.648Z" },
-]
-
-[[package]]
 name = "pyarrow"
 version = "25.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1943,15 +1934,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/ea/39/dd3341e235a3794c613ea32bd35618a88ff2ae067dbe9dd7c382c8c146d2/pyroaring-1.1.0-cp312-cp312-win_amd64.whl", hash = "sha256:51ebe5e6f48e3dc9df91a4cb62137ef72e1469acd6f37479abd9991f6d945cc9", size = 263337, upload-time = "2026-04-24T21:28:21.371Z" },
     { url = "https://files.pythonhosted.org/packages/12/5d/bb8e93dd7412180c621086ed46014a0f09f9a71d9370ce8cf607c5a2cf00/pyroaring-1.1.0-cp312-cp312-win_arm64.whl", hash = "sha256:9882a204178cc8c915e0ce30abb4bdd1668e383c571b06649d5ed272d9625877", size = 216727, upload-time = "2026-04-24T21:28:22.536Z" },
 ]
-
-[[package]]
-name = "pyspark"
-version = "4.1.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "py4j" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/19/bf/58ee13add151469c25825b7125bbf62c3bdcec05eec4d458fcb5c5516066/pyspark-4.1.1.tar.gz", hash = "sha256:77f78984aa84fbe865c717dd37b49913b4e5c97d76ef6824f932f1aefa6621ec", size = 455359625, upload-time = "2026-01-09T09:38:38.28Z" }
 
 [[package]]
 name = "pyspark-client"
@@ -2463,11 +2445,10 @@ dependencies = [
     { name = "psycopg" },
     { name = "pyarrow" },
     { name = "pyiceberg", extra = ["pyiceberg-core"] },
-    { name = "pyspark" },
     { name = "pyyaml" },
 ]
 wheels = [
-    { filename = "tool_poc_data_pipeline_dag-0.1.0-py3-none-any.whl", hash = "sha256:17dcc76acc27c5e49a16c6bd1844acf38cec7d959d0bbad61a502756e3f25509" },
+    { filename = "tool_poc_data_pipeline_dag-0.1.0-py3-none-any.whl", hash = "sha256:0e66354a134ed830a5d9f6aba87d8d6c7a99c7f617c3a7516a3e32eccafe03e8" },
 ]
 
 [package.metadata]
@@ -2478,7 +2459,6 @@ requires-dist = [
     { name = "pyarrow", specifier = ">=17.0.0" },
     { name = "pyiceberg", specifier = ">=0.11.1" },
     { name = "pyiceberg", extras = ["pyiceberg-core"], specifier = "==0.11.1" },
-    { name = "pyspark", specifier = "==4.1.1" },
     { name = "pyyaml", specifier = ">=6.0.3" },
 ]
 
