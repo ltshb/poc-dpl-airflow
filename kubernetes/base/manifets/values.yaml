@@ -10,7 +10,7 @@ fernetKeySecretName: airflow-fernet-key
 
 dagInitContainerImage:
   repository: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only
-  tag: init-local-lthee-7c0b90b
+  tag: init-local-lthee-ff1b6b9
   pullPolicy: IfNotPresent
 
 airflowServiceAccountRoleArn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
