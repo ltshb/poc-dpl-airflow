@@ -54,8 +54,12 @@ config:
   kubernetes_executor:
     delete_worker_pods: "False"
     delete_worker_pods_on_failure: "False"
+  logging:
+    remote_logging: "True"
+    remote_base_log_folder: "s3://poc-dataingest-airflow-logs-swissgeo"
+    remote_log_conn_id: "aws_default"
 
-# do not create persistent volumes for logs
+# create persistent volumes for logs
 logs:
   persistence:
     enabled: false
