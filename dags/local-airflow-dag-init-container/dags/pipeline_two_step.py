@@ -14,9 +14,9 @@ default_args = {"owner": "airflow", "depends_on_past": False, "retries": 0}
 
 # Create the DAG
 dag = DAG(
-    "one_step_pipeline",
+    "two_step_pipeline",
     default_args=default_args,
-    description="A YAML based pipeline which contains one step",
+    description="A YAML based pipeline which contains two steps",
     schedule=None,
     catchup=False,
     params=ParamsDict(
@@ -43,6 +43,22 @@ def first_step(configuration_file_key: str) -> None:
     logger.info("first_step completed successfully")
 
 
+def second_step(configuration_file_key: str) -> None:
+    # Hardcoded for testing, define them in real DAG
+    bucket_name = "poc-dataingest-data-source-swissgeo"
+
+    converter_file = download_from_s3(configuration_file_key, bucket_name)
+    converter_definition = parse_yaml(converter_file)
+
+    nodes = generate_node_tree(converter_definition, "second_step")
+
+    if len(nodes) == 0:
+        raise Exception("No nodes generated")
+    apply_nodes(nodes)
+
+    logger.info("second_step completed successfully")
+
+
 first_step_task = PythonOperator(
     task_id="first_step_task",
     python_callable=first_step,
@@ -51,3 +67,16 @@ first_step_task = PythonOperator(
         "configuration_file_key": "{{ params.configuration_file_key }}",
     },
 )
+
+
+second_step_task = PythonOperator(
+    task_id="second_step_task",
+    python_callable=second_step,
+    dag=dag,
+    op_kwargs={
+        "configuration_file_key": "{{ params.configuration_file_key }}",
+    },
+)
+
+# Set dependencies between steps
+first_step_task >> second_step_task
