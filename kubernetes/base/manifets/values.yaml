@@ -48,6 +48,8 @@ executor: KubernetesExecutor
 
 # See https://airflow.apache.org/docs/helm-chart/stable/airflow-configuration.html#configuring-airflow
 config:
+  core:
+    task_success_overtime: "300"
   api:
     expose_config: "True"
     base_url: https://nlb-poc-datapipeline.poc-datapipeline.sgdi.tech/airflow
