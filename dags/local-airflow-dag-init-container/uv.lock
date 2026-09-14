@@ -124,7 +124,6 @@ name = "local-airflow-dag-init-container"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "pyarrow" },
     { name = "python-dateutil" },
     { name = "tool-poc-data-pipeline-dag" },
 ]
@@ -136,7 +135,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "pyarrow", specifier = ">=25.0.1" },
     { name = "python-dateutil", specifier = "==2.9.0.post0" },
     { name = "tool-poc-data-pipeline-dag", path = "wheels/tool_poc_data_pipeline_dag-0.1.0-py3-none-any.whl" },
 ]
@@ -563,7 +561,7 @@ dependencies = [
     { name = "pyyaml" },
 ]
 wheels = [
-    { filename = "tool_poc_data_pipeline_dag-0.1.0-py3-none-any.whl", hash = "sha256:45750cb6152e26e1f0074e5e8123e0bbedda3ba1d26b05a3f2d481a028779e9b" },
+    { filename = "tool_poc_data_pipeline_dag-0.1.0-py3-none-any.whl", hash = "sha256:f6d917b90a53e7915119005babce810d5cd72e722d70938c0446f949b7561e32" },
 ]
 
 [package.metadata]

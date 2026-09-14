@@ -1,13 +1,13 @@
 import logging
 import threading
 
-import pyarrow.fs as pafs
 from airflow.providers.standard.operators.python import PythonOperator
 from airflow.sdk import DAG
 from airflow.sdk.definitions.param import Param, ParamsDict
 from pipeline_tooling.from_nodes import apply_nodes, generate_node_tree
 from pipeline_tooling.importer import download_from_s3
 from pipeline_tooling.reader import parse_yaml
+from pyiceberg.utils.concurrent import ExecutorFactory
 
 logger = logging.getLogger("pipeline_three_step")
 
@@ -44,8 +44,8 @@ def first_step(configuration_file_key: str) -> None:
 
     logger.info(f"Active threads: {[t.name for t in threading.enumerate()]}")
 
-    logger.info("Finalize PyArrow s3")
-    pafs.finalize_s3()
+    ExecutorFactory.get_or_create().shutdown(wait=False, cancel_futures=True)
+    logger.info("Shut down the executor threads")
 
     logger.info("first_step completed successfully")
 
