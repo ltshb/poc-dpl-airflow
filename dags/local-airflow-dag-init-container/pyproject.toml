@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Example Airflow DAG deployed by an init container."
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "pyarrow>=25.0.1",
     "python-dateutil==2.9.0.post0",
     "tool-poc-data-pipeline-dag",
 ]
