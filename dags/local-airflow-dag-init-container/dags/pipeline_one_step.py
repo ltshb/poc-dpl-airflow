@@ -29,7 +29,7 @@ dag = DAG(
 
 def first_step(configuration_file_key: str) -> None:
     # Hardcoded for testing, define them in real DAG
-    bucket_name = "poc-dataingest-data-source-swissgeo"
+    bucket_name = "poc-dataingest-airflow-source"
 
     converter_file = download_from_s3(configuration_file_key, bucket_name)
     converter_definition = parse_yaml(converter_file)
