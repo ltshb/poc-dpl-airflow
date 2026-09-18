@@ -4,8 +4,8 @@ from airflow.providers.standard.operators.python import PythonOperator
 from airflow.sdk import DAG
 from airflow.sdk.definitions.param import Param, ParamsDict
 from pipeline_tooling.from_nodes import apply_nodes, generate_node_tree
-from pipeline_tooling.importer import download_from_s3
-from pipeline_tooling.reader import parse_yaml
+from pipeline_tooling.parser import parse_yaml
+from pipeline_tooling.reader import download_from_s3
 
 logger = logging.getLogger("pipeline_one_step")
 
