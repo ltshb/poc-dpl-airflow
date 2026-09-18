@@ -8,3 +8,4 @@ resources:
   - serviceaccount-airflow-worker-kubernetes-restricted.yaml
   - manifets/rendered.yaml
   - ingress.yaml
+  - manifets/configmap.yaml

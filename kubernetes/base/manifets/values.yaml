@@ -10,7 +10,7 @@ fernetKeySecretName: airflow-fernet-key
 
 dagInitContainerImage:
   repository: 025064823138.dkr.ecr.eu-central-1.amazonaws.com/poc-datapipeline/airflow-dags-only
-  tag: init-local-lthee-b522e9d
+  tag: init-local-lthee-0b6d7de
   pullPolicy: IfNotPresent
 
 airflowServiceAccountRoleArn: arn:aws:iam::025064823138:role/k8s-service-account/K8sIRSAAirflowDBSecretSwissgeoPocDatapipeline
@@ -177,9 +177,22 @@ workers:
       create: true
       annotations:
         eks.amazonaws.com/role-arn: "{{ .Values.airflowServiceAccountRoleArn }}"
+    envFrom:
+      - configMapRef:
+          name: dag-config
     env:
       - name: PYTHONPATH
         value: /opt/airflow/dags/local-airflow-dag-init-container/python
+      - name: RDS_AIRFLOW_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: airflow-dag-secrets
+            key: FEATURES_DB_PASSWORD
+      - name: RDS_AIRFLOW_USER
+        valueFrom:
+          secretKeyRef:
+            name: airflow-dag-secrets
+            key: FEATURES_DB_USER
     extraVolumes:
       - name: dags
         emptyDir: {}
