@@ -5,6 +5,7 @@ description = "Example Airflow DAG deployed by an init container."
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "python-dateutil==2.9.0.post0",
+    "tool-poc-data-pipeline-dag",
 ]
 
 [dependency-groups]
@@ -14,6 +15,9 @@ dev = [
 
 [tool.uv]
 package = false
+
+[tool.uv.sources]
+tool-poc-data-pipeline-dag = { path = "wheels/tool_poc_data_pipeline_dag-0.1.0-py3-none-any.whl" }
 
 [tool.ruff]
 target-version = "py312"

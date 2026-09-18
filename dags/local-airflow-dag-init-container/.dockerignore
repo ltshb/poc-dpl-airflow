@@ -4,3 +4,5 @@
 !deploy-dags.sh
 !pyproject.toml
 !uv.lock
+!wheels/
+!wheels/**
